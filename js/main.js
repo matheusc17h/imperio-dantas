@@ -146,6 +146,35 @@ if (placa && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
   checar();
 }
 
+/* ---------- Trabalhos da casa: título e texto entram primeiro; no desktop a linha 1
+   de fotos sobe da esquerda p/ direita e depois a linha 2 desce da direita p/ esquerda ---------- */
+const secaoTrabalhos = document.getElementById('trabalhos');
+if (secaoTrabalhos && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  secaoTrabalhos.classList.add('trabalhos--anima');
+  const galeria = secaoTrabalhos.querySelector('.galeria');
+  if (galeria && matchMedia('(min-width: 960px)').matches) {
+    const COLUNAS = 6, PASSO = 90, DURACAO = 600, INICIO = 350; // ms (INICIO: espera o texto)
+    const fimLinha1 = INICIO + (COLUNAS - 1) * PASSO + DURACAO;
+    [...galeria.children].forEach((foto, i) => {
+      const linha = Math.floor(i / COLUNAS);
+      const col = i % COLUNAS;
+      foto.dataset.linha = linha === 0 ? '1' : '2';
+      const atraso = linha === 0 ? INICIO + col * PASSO : fimLinha1 + (COLUNAS - 1 - col) * PASSO;
+      foto.style.setProperty('--d', atraso + 'ms');
+    });
+    galeria.classList.add('galeria--anima');
+  }
+  const checarTrabalhos = () => {
+    const r = secaoTrabalhos.getBoundingClientRect();
+    if (r.top < innerHeight * 0.6 && r.bottom > innerHeight * 0.3) {
+      secaoTrabalhos.classList.add('trabalhos--visivel');
+      removeEventListener('scroll', checarTrabalhos);
+    }
+  };
+  addEventListener('scroll', checarTrabalhos, { passive: true });
+  checarTrabalhos();
+}
+
 /* ---------- Foto ampliada ---------- */
 const dialogo = document.querySelector('[data-ampliada]');
 if (dialogo && typeof dialogo.showModal === 'function') {
@@ -242,18 +271,36 @@ if (form) {
   atualizar();
 }
 
-/* ---------- Mapa: só carrega quando o endereço estiver preenchido e a seção aparecer ---------- */
+/* ---------- Mapa: carrega em segundo plano logo após a página abrir (ou antes, se a pessoa
+   rolar até perto dele). Usa o endereço direto do embed, sem redirecionamento. ---------- */
 const mapa = document.querySelector('[data-mapa]');
 const comoChegar = document.querySelector('[data-como-chegar]');
 if (preenchido(CONFIG.endereco)) {
   const q = encodeURIComponent(CONFIG.endereco);
   if (comoChegar) comoChegar.href = `https://www.google.com/maps/search/?api=1&query=${q}`;
-  if (mapa && 'IntersectionObserver' in window) {
-    new IntersectionObserver((entradas, obs) => {
-      if (!entradas[0].isIntersecting) return;
-      mapa.innerHTML = `<iframe title="Mapa do Império Dantas" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://www.google.com/maps?q=${q}&output=embed"></iframe>`;
-      obs.disconnect();
-    }, { rootMargin: '300px' }).observe(mapa);
+  if (mapa) {
+    let carregado = false;
+    const carregarMapa = () => {
+      if (carregado) return;
+      carregado = true;
+      const iframe = document.createElement('iframe');
+      iframe.title = 'Mapa do Império Dantas';
+      iframe.referrerPolicy = 'no-referrer-when-downgrade';
+      iframe.src = `https://www.google.com/maps/embed?origin=mfe&pb=!1m2!2m1!1s${q}`;
+      iframe.addEventListener('load', () => mapa.classList.add('mapa--pronto'));
+      mapa.append(iframe);
+    };
+    // 1) se a pessoa rolar até perto do mapa, carrega na hora
+    const perto = () => {
+      const r = mapa.getBoundingClientRect();
+      if (r.top < innerHeight * 2.5) { carregarMapa(); removeEventListener('scroll', perto); }
+    };
+    addEventListener('scroll', perto, { passive: true });
+    // 2) senão, carrega sozinho em segundo plano depois que a página terminou de abrir
+    addEventListener('load', () => {
+      const agendar = window.requestIdleCallback || ((fn) => setTimeout(fn, 1200));
+      setTimeout(() => agendar(carregarMapa, { timeout: 2000 }), 2200);
+    });
   }
 }
 
