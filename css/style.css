@@ -388,13 +388,12 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 }
 .foto__quero {
   position: absolute; left: 14px; bottom: 14px; z-index: 1;
-  display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0 14px 0 11px; border-radius: 999px;
+  display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0 14px; border-radius: 999px;
   background: rgba(0,0,0,.35); border: 1px solid rgba(255,255,255,.65); color: var(--branco);
   -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
   font: 600 var(--t-xs)/1 var(--texto); letter-spacing: .02em; text-decoration: none;
   transition: background-color .2s var(--sai), color .2s var(--sai), border-color .2s var(--sai);
 }
-.foto__quero .icone-wa { width: 14px; height: 14px; color: var(--wa-verde); }
 .foto__quero:hover, .foto__quero:focus-visible { background: var(--branco); border-color: var(--branco); color: var(--preto); }
 /* bloco do Instagram no fim da grade */
 .foto--insta a { background: var(--grafite); border: 1px solid var(--linha-escura); }

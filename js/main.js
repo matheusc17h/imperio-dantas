@@ -41,9 +41,19 @@ document.querySelectorAll('[data-servico]').forEach((a) => {
   a.href = linkWhatsApp(`Olá! Quero agendar ${servico} (${brl(Number(preco))}, ${min} min). Qual o melhor horário?`);
   a.setAttribute('aria-label', `Agendar ${servico}, ${brl(Number(preco))}, ${min} minutos`);
 });
+// "Quero esse" (trabalhos da casa): leva ao simulador com o serviço da foto já marcado
 document.querySelectorAll('[data-quero]').forEach((a) => {
-  a.href = linkWhatsApp(`Olá! Vi o trabalho "${a.dataset.quero}" no site e quero agendar algo parecido.`);
-  a.setAttribute('aria-label', `Quero esse: ${a.dataset.quero}, agendar pelo WhatsApp`);
+  a.setAttribute('aria-label', `Quero esse: ${a.dataset.quero}. Ir para Monte sua visita com o serviço marcado`);
+  a.addEventListener('click', () => {
+    const form = document.querySelector('[data-simulador]');
+    if (!form) return;
+    const nomes = a.dataset.servicos.split('|');
+    form.querySelectorAll('input[name="servico"]').forEach((c) => {
+      const nome = c.closest('label').querySelector('span').firstChild.textContent.trim();
+      c.checked = nomes.includes(nome);
+    });
+    form.dispatchEvent(new Event('change', { bubbles: true }));
+  });
 });
 
 /* ---------- Hora em São Paulo (independe do fuso de quem visita) ---------- */
