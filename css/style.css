@@ -380,17 +380,22 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .foto__abrir { position: absolute; inset: 0; width: 100%; cursor: zoom-in; }
 .foto__abrir img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 72%; transition: transform .6s var(--sai); }
 .foto__abrir:hover img { transform: scale(1.03); }
-.foto::after { content: ""; position: absolute; inset: 55% 0 0; pointer-events: none; background: linear-gradient(to top, rgba(0,0,0,.8), transparent); }
-.foto__legenda { position: absolute; left: var(--e-2); bottom: var(--e-2); z-index: 1; pointer-events: none; font: 500 var(--t-base)/1.2 var(--display); }
-.foto__quero {
-  position: absolute; right: 10px; bottom: 10px; z-index: 1;
-  display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px; border-radius: 999px;
-  background: var(--branco); color: var(--preto); font: 600 var(--t-xs)/1 var(--texto); text-decoration: none;
-  transition: background-color .2s var(--sai);
+.foto::after { content: ""; position: absolute; inset: 40% 0 0; pointer-events: none; background: linear-gradient(to top, rgba(0,0,0,.88), rgba(0,0,0,.35) 55%, transparent); }
+/* nome do corte + botão "Quero esse" sempre visíveis, discretos sobre a foto */
+.foto__legenda {
+  position: absolute; left: 14px; right: 14px; bottom: 54px; z-index: 1; pointer-events: none;
+  font: 500 var(--t-base)/1.15 var(--display); color: var(--branco); text-shadow: 0 1px 8px rgba(0,0,0,.5);
 }
-.foto__quero:hover { background: var(--prata); }
-.foto__legenda { bottom: 58px; left: 12px; }
-.foto__quero { left: 10px; right: 10px; justify-content: center; }
+.foto__quero {
+  position: absolute; left: 14px; bottom: 14px; z-index: 1;
+  display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0 14px 0 11px; border-radius: 999px;
+  background: rgba(0,0,0,.35); border: 1px solid rgba(255,255,255,.65); color: var(--branco);
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  font: 600 var(--t-xs)/1 var(--texto); letter-spacing: .02em; text-decoration: none;
+  transition: background-color .2s var(--sai), color .2s var(--sai), border-color .2s var(--sai);
+}
+.foto__quero .icone-wa { width: 14px; height: 14px; color: var(--wa-verde); }
+.foto__quero:hover, .foto__quero:focus-visible { background: var(--branco); border-color: var(--branco); color: var(--preto); }
 /* bloco do Instagram no fim da grade */
 .foto--insta a { background: var(--grafite); border: 1px solid var(--linha-escura); }
 .foto--insta::after { display: none; }
@@ -600,14 +605,6 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   .simulador__total dd { font-size: var(--t-lg); }
 }
 
-/* trabalhos no desktop com mouse: "Quero esse" aparece ao passar o mouse (ou no foco do teclado) */
-@media (min-width: 960px) and (hover: hover) {
-  .foto__quero { opacity: 0; transform: translateY(6px); transition: opacity .2s var(--sai), transform .2s var(--sai), background-color .2s var(--sai); }
-  .foto:hover .foto__quero, .foto:focus-within .foto__quero { opacity: 1; transform: none; }
-  .foto__legenda { bottom: 14px; transition: bottom .2s var(--sai); }
-  .foto:hover .foto__legenda, .foto:focus-within .foto__legenda { bottom: 58px; }
-}
-
 /* =====================================================================
    RESPONSIVO
    ===================================================================== */
@@ -649,8 +646,6 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   .quadro__placa { padding-block: var(--e-6); }
   .trabalhos { padding-block: var(--e-10); }
   .galeria { grid-template-columns: repeat(2, 1fr); grid-auto-rows: 150px; gap: 8px; }
-  .foto__legenda { bottom: 58px; left: 12px; }
-  .foto__quero { left: 8px; right: 8px; bottom: 8px; justify-content: center; }
 
   .agendar { grid-template-columns: 1fr; }
   .agendar__foto { min-height: 320px; }
