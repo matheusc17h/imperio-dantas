@@ -146,34 +146,49 @@ if (placa && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
   checar();
 }
 
-/* ---------- Trabalhos da casa: título e texto entram primeiro; no desktop a linha 1
-   de fotos sobe da esquerda p/ direita e depois a linha 2 desce da direita p/ esquerda ---------- */
-const secaoTrabalhos = document.getElementById('trabalhos');
-if (secaoTrabalhos && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
-  secaoTrabalhos.classList.add('trabalhos--anima');
-  const galeria = secaoTrabalhos.querySelector('.galeria');
-  if (galeria && matchMedia('(min-width: 960px)').matches) {
-    const COLUNAS = 6, PASSO = 90, DURACAO = 600, INICIO = 350; // ms (INICIO: espera o texto)
-    const fimLinha1 = INICIO + (COLUNAS - 1) * PASSO + DURACAO;
-    [...galeria.children].forEach((foto, i) => {
-      const linha = Math.floor(i / COLUNAS);
-      const col = i % COLUNAS;
-      foto.dataset.linha = linha === 0 ? '1' : '2';
-      const atraso = linha === 0 ? INICIO + col * PASSO : fimLinha1 + (COLUNAS - 1 - col) * PASSO;
-      foto.style.setProperty('--d', atraso + 'ms');
+/* ---------- Trabalhos da casa (GSAP + ScrollTrigger) ----------
+   1) o fundo preto abre do centro (cortinas cinza recolhem para cima e para baixo)
+   2) título e texto entram
+   3) desktop: linha 1 sobe de baixo p/ cima, da esquerda p/ direita;
+      depois a linha 2 desce de cima p/ baixo, da direita p/ esquerda
+   Roda ao descer até a seção e desfaz ao subir. Sem GSAP ou com "reduzir movimento",
+   a seção aparece normal. */
+(function animarTrabalhos() {
+  const sec = document.getElementById('trabalhos');
+  if (!sec || !window.gsap || !window.ScrollTrigger) return;
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  gsap.registerPlugin(ScrollTrigger);
+
+  const cima = document.createElement('div');
+  const baixo = document.createElement('div');
+  cima.className = 'cortina cortina--cima';
+  baixo.className = 'cortina cortina--baixo';
+  sec.prepend(cima, baixo);
+
+  const topo = sec.querySelectorAll('.trabalhos__topo > *');
+  const fotos = [...sec.querySelectorAll('.galeria > .foto')];
+
+  gsap.matchMedia().add({ desk: '(min-width: 960px)', mob: '(max-width: 959px)' }, (ctx) => {
+    const tl = gsap.timeline({
+      defaults: { ease: 'power3.out' },
+      scrollTrigger: { trigger: sec, start: 'top 65%', toggleActions: 'play none none reverse' },
     });
-    galeria.classList.add('galeria--anima');
-  }
-  const checarTrabalhos = () => {
-    const r = secaoTrabalhos.getBoundingClientRect();
-    if (r.top < innerHeight * 0.6 && r.bottom > innerHeight * 0.3) {
-      secaoTrabalhos.classList.add('trabalhos--visivel');
-      removeEventListener('scroll', checarTrabalhos);
+    tl.fromTo([cima, baixo], { scaleY: 1 }, { scaleY: 0, duration: 0.8, ease: 'power3.inOut' })
+      .from(topo, { y: 40, opacity: 0, duration: 0.6, stagger: 0.12 }, '-=0.35');
+    if (ctx.conditions.desk) {
+      const linha1 = fotos.slice(0, 6);
+      const linha2 = fotos.slice(6, 12).reverse(); // da direita para a esquerda
+      // cada foto surge dentro do próprio quadro (o quadro tem overflow: hidden), como máscara
+      const miolo = (linha) => linha.flatMap((f) => [...f.children]);
+      const passo = (linha) => (i, el) => linha.indexOf(el.closest('.foto')) * 0.09;
+      const altura = (sinal) => (i, el) => sinal * el.closest('.foto').offsetHeight; // desloca a altura do quadro
+      tl.from(miolo(linha1), { y: altura(1), duration: 0.8, stagger: passo(linha1) }, '-=0.25')
+        .from(miolo(linha2), { y: altura(-1), duration: 0.8, stagger: passo(linha2) });
+    } else {
+      tl.from(fotos, { y: 80, opacity: 0, duration: 0.6, stagger: 0.06 }, '-=0.25');
     }
-  };
-  addEventListener('scroll', checarTrabalhos, { passive: true });
-  checarTrabalhos();
-}
+  });
+})();
 
 /* ---------- Foto ampliada ---------- */
 const dialogo = document.querySelector('[data-ampliada]');
