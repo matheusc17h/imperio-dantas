@@ -38,12 +38,13 @@
   --sai: cubic-bezier(.16, 1, .3, 1);
   --entra: cubic-bezier(.7, 0, .84, 0);
   --atraso-intro: 1.9s;
+  --nav-h: 72px;
 }
 .sem-intro { --atraso-intro: 0s; }
 
 /* ---------- Base ---------- */
 *, *::before, *::after { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; scroll-padding-top: 80px; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; scroll-padding-top: var(--nav-h); }
 body {
   margin: 0; background: var(--preto); color: var(--branco);
   font: 400 var(--t-base)/1.6 var(--texto);
@@ -53,6 +54,7 @@ img { display: block; max-width: 100%; height: auto; }
 a { color: inherit; }
 h1, h2, h3, p, dl, dd, figure { margin: 0; }
 h1, h2, h3 { font-weight: 500; }
+p, dd, li, summary, figcaption { text-wrap: pretty; }
 ul { margin: 0; padding: 0; list-style: none; }
 button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
 :focus-visible { outline: 2px solid var(--prata); outline-offset: 3px; }
@@ -139,14 +141,14 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 @keyframes intro-sai { to { opacity: 0; visibility: hidden; } }
 
 /* =====================================================================
-   STATUS + NAVEGAÇÃO
+   NAVEGAÇÃO
    ===================================================================== */
+/* status ao vivo (fica no hero) */
 .status {
-  display: flex; align-items: center; justify-content: center; gap: var(--e-2);
-  max-width: var(--largura); margin: 0 auto; min-height: 40px; padding: 8px var(--lateral);
-  font-size: var(--t-xs); color: var(--texto-escuro-2);
+  display: inline-flex; align-items: center; gap: 10px;
+  min-height: 36px; padding: 0 14px; border: 1px solid var(--linha-escura); border-radius: 999px;
+  font-size: var(--t-sm); color: var(--texto-escuro-2);
 }
-.status__texto { display: inline-flex; align-items: center; gap: 10px; }
 .status__ponto { width: 7px; height: 7px; flex: none; border-radius: 50%; background: var(--texto-escuro-2); }
 .aberto .status__ponto { background: var(--wa-verde); box-shadow: 0 0 0 4px rgba(37,211,102,.16); }
 .aberto [data-status] { color: var(--branco); }
@@ -169,6 +171,14 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   transition: color .2s var(--sai), background-size .25s var(--sai);
 }
 .nav__links a:hover { color: var(--branco); background-size: 100% 1px; }
+/* ícones da área do cliente (login e agendamentos) */
+.nav__icones { display: flex; gap: 4px; margin-right: calc(var(--e-2) * -1); }
+.nav__icone {
+  display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%;
+  color: var(--prata); transition: color .2s var(--sai), background-color .2s var(--sai);
+}
+.nav__icone svg { width: 22px; height: 22px; }
+.nav__icone:hover { color: var(--branco); background: rgba(185,189,195,.12); }
 .nav__cta { min-height: 44px; }
 .nav__menu { display: none; position: relative; width: 44px; height: 44px; }
 .nav__menu span { position: absolute; left: 11px; right: 11px; height: 1.5px; background: var(--branco); transition: transform .25s var(--sai); }
@@ -184,11 +194,12 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: var(--e-8);
   max-width: var(--largura); margin: 0 auto; padding: var(--e-8) var(--lateral) var(--e-10);
 }
-.hero__texto { display: grid; gap: var(--e-4); justify-items: start; }
+.hero__texto { display: grid; gap: var(--e-4); justify-items: start; container-type: inline-size; }
 .hero__titulo { display: grid; gap: var(--e-3); }
 .hero__seo { font: 500 var(--t-base)/1.4 var(--texto); color: var(--prata); }
+.hero__grande > span { display: block; white-space: nowrap; }
 .hero__grande {
-  font: 500 clamp(2.6rem, 5.6vw, 4.6rem)/1.02 var(--display);
+  font: 500 clamp(1.5rem, 10.6cqi, 5.4rem)/1.04 var(--display);
   letter-spacing: .01em;
   background: var(--cromo); -webkit-background-clip: text; background-clip: text; color: transparent;
   background-size: 220% 100%; background-position: 100% 0;
@@ -215,6 +226,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .hero__texto > :nth-child(2) { animation-delay: calc(var(--atraso-intro) + .2s); }
 .hero__texto > :nth-child(3) { animation-delay: calc(var(--atraso-intro) + .3s); }
 .hero__texto > :nth-child(4) { animation-delay: calc(var(--atraso-intro) + .4s); }
+.hero__texto > :nth-child(5) { animation-delay: calc(var(--atraso-intro) + .5s); }
 @keyframes sobe { from { opacity: 0; transform: translateY(16px); } }
 
 /* =====================================================================
@@ -238,7 +250,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
    SERVIÇOS EM DESTAQUE (parede cinza, como o salão)
    ===================================================================== */
 .servicos {
-  display: grid; grid-template-columns: minmax(240px, 320px) minmax(0, 1fr); gap: var(--e-6);
+  display: grid; grid-template-columns: minmax(300px, 460px) minmax(0, 1fr); gap: var(--e-6);
   padding: var(--e-12) 0 var(--e-12) max(var(--lateral), calc((100% - var(--largura)) / 2 + var(--lateral)));
   background: var(--parede); color: var(--preto);
 }
@@ -325,9 +337,10 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .galeria { display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: 200px; grid-auto-flow: dense; gap: 12px; }
 .foto { position: relative; overflow: hidden; background: var(--grafite); grid-row: span 2; }
 .foto--alta { grid-row: span 3; }
-/* desktop: 4 colunas que terminam na mesma linha (3 fotos, 2 altas, 3, 3) */
+/* desktop: 2 linhas de 6, com altura calculada para caber na tela */
 @media (min-width: 960px) {
-  .galeria { grid-auto-flow: column; grid-template-rows: repeat(6, 200px); grid-auto-rows: unset; }
+  .galeria { grid-template-columns: repeat(6, 1fr); grid-auto-rows: clamp(180px, calc((100svh - var(--nav-h) - 280px) / 2), 320px); }
+  .foto, .foto--alta { grid-row: auto; }
 }
 .foto__abrir { position: absolute; inset: 0; width: 100%; cursor: zoom-in; }
 .foto__abrir img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 72%; transition: transform .6s var(--sai); }
@@ -341,6 +354,20 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   transition: background-color .2s var(--sai);
 }
 .foto__quero:hover { background: var(--prata); }
+.foto__legenda { bottom: 58px; left: 12px; }
+.foto__quero { left: 10px; right: 10px; justify-content: center; }
+/* bloco do Instagram no fim da grade */
+.foto--insta { background: var(--grafite); border: 1px solid var(--linha-escura); }
+.foto--insta::after { display: none; }
+.foto--insta a {
+  position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 10px;
+  padding: var(--e-2); text-align: center; text-decoration: none; transition: background-color .25s var(--sai), color .25s var(--sai);
+}
+.foto--insta svg { width: 32px; height: 32px; color: var(--prata); transition: color .25s var(--sai); }
+.foto--insta span { font: 500 var(--t-base)/1.25 var(--display); }
+.foto--insta small { font-size: var(--t-xs); color: var(--texto-escuro-2); }
+.foto--insta a:hover { background: var(--branco); color: var(--preto); }
+.foto--insta a:hover svg, .foto--insta a:hover small { color: var(--preto); }
 .ampliada { padding: 0; border: 0; background: transparent; max-width: min(92vw, 720px); overflow: visible; }
 .ampliada::backdrop { background: rgba(0,0,0,.9); }
 .ampliada img { max-height: 86vh; width: auto; margin: 0 auto; }
@@ -398,7 +425,8 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 /* =====================================================================
    HORÁRIO E LOCAL
    ===================================================================== */
-.horario { display: grid; grid-template-columns: 1fr 1fr; gap: var(--e-10); max-width: var(--largura); margin: 0 auto; padding: var(--e-12) var(--lateral); }
+.horario > * { min-width: 0; }
+.horario { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--e-10); max-width: var(--largura); margin: 0 auto; padding: var(--e-12) var(--lateral); }
 .horario table { width: 100%; margin-top: var(--e-4); border-collapse: collapse; }
 .horario th, .horario td { padding: 14px 0; border-bottom: 1px solid var(--linha-escura); font-weight: 400; text-align: left; }
 .horario th { font: 500 var(--t-md)/1.2 var(--display); color: var(--texto-escuro-2); }
@@ -418,7 +446,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 /* =====================================================================
    DÚVIDAS
    ===================================================================== */
-.duvidas { display: grid; grid-template-columns: minmax(240px, 380px) minmax(0, 1fr); gap: var(--e-8); padding: var(--e-12) max(var(--lateral), calc((100% - var(--largura)) / 2 + var(--lateral))); background: var(--parede); color: var(--preto); }
+.duvidas { display: grid; grid-template-columns: minmax(260px, 480px) minmax(0, 1fr); gap: var(--e-8); padding: var(--e-12) max(var(--lateral), calc((100% - var(--largura)) / 2 + var(--lateral))); background: var(--parede); color: var(--preto); }
 .duvidas__lista { max-width: 720px; }
 .duvidas details { border-bottom: 1px solid var(--linha-clara); }
 .duvidas summary { display: flex; justify-content: space-between; align-items: center; gap: var(--e-2); min-height: 64px; padding: var(--e-2) 0; cursor: pointer; list-style: none; font: 600 var(--t-md)/1.3 var(--texto); }
@@ -439,6 +467,9 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .rodape__col h2 { margin-bottom: 4px; font: 500 var(--t-base)/1.2 var(--display); color: var(--branco); }
 .rodape__col a { text-decoration: none; }
 .rodape__col a:hover { color: var(--branco); text-decoration: underline; text-underline-offset: 3px; }
+.rodape__rede { display: inline-flex; align-items: center; gap: 10px; min-height: 32px; justify-self: start; }
+.rodape__rede svg { width: 20px; height: 20px; color: var(--prata); transition: color .2s var(--sai); }
+.rodape__rede:hover svg { color: var(--branco); }
 .rodape__base { grid-column: 1 / -1; padding-top: var(--e-4); border-top: 1px solid var(--linha-escura); font-size: var(--t-xs); color: var(--texto-escuro-2); }
 
 /* =====================================================================
@@ -465,6 +496,62 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .barra-celular { display: none; }
 
 /* =====================================================================
+   UMA SEÇÃO = UMA TELA (desktop com altura suficiente)
+   ===================================================================== */
+@media (min-width: 960px) and (min-height: 620px) {
+  .dobra { display: flex; flex-direction: column; height: calc(100svh - var(--nav-h)); min-height: 600px; }
+  .hero { flex: 1; min-height: 0; width: 100%; grid-template-rows: minmax(0, 1fr); align-items: stretch; padding-block: var(--e-5); }
+  .hero__texto { align-content: center; gap: var(--e-3); }
+  .hero__grande { font-size: clamp(2.2rem, min(10.6cqi, 8.4vh), 5.4rem); }
+  .hero__sub { font-size: clamp(var(--t-base), 2.2vh, var(--t-md)); }
+  .hero__foto { min-height: 0; height: 100%; }
+  .hero__foto img { height: 100%; aspect-ratio: auto; }
+  .fatos__lista li { padding-block: var(--e-3); }
+
+  .servicos, .quadro, .trabalhos, .agendar, .horario, .duvidas { min-height: calc(100svh - var(--nav-h)); }
+  .servicos { align-content: center; align-items: center; padding-block: var(--e-6); }
+  .quadro { display: grid; align-content: center; padding-block: var(--e-5); }
+  .quadro__placa { padding-block: var(--e-5); }
+  .quadro__topo { margin-bottom: var(--e-4); gap: var(--e-1); }
+  .quadro__topo img { width: 48px; }
+  .quadro__grupo a { min-height: 48px; padding-block: 8px; }
+  .quadro__glossario { margin-top: var(--e-4); }
+  .trabalhos { display: grid; align-content: center; padding-block: var(--e-6); }
+  .trabalhos__topo { margin-bottom: var(--e-4); }
+  .simulador { align-content: center; padding-block: var(--e-6); gap: var(--e-3); }
+  .horario { align-content: center; align-items: center; padding-block: var(--e-6); }
+  .duvidas { align-content: center; align-items: center; padding-block: var(--e-6); }
+  .chips span, .periodos span { min-height: 40px; }
+  .simulador__total div { padding-block: 12px; }
+}
+
+/* telas baixas (notebook): compacta tabela e simulador para caberem inteiros */
+@media (min-width: 960px) and (max-height: 820px) {
+  .quadro__placa { padding-block: var(--e-4); }
+  .quadro__topo { margin-bottom: var(--e-3); }
+  .quadro__topo img { width: 36px; }
+  .quadro__topo h2 { font-size: var(--t-xl); }
+  .quadro__topo p { display: none; }
+  .quadro__grupo a { min-height: 44px; padding-block: 6px; }
+  .quadro__grupo ul + h3 { margin-top: var(--e-2); }
+  .quadro__glossario { margin-top: var(--e-2); }
+  .quadro__glossario summary { min-height: 44px; }
+  .simulador { gap: var(--e-2); padding-block: var(--e-4); }
+  .simulador .titulo { font-size: var(--t-xl); }
+  .simulador__intro { display: none; }
+  .passo legend { margin-bottom: 8px; }
+  .simulador__total dd { font-size: var(--t-lg); }
+}
+
+/* trabalhos no desktop com mouse: "Quero esse" aparece ao passar o mouse (ou no foco do teclado) */
+@media (min-width: 960px) and (hover: hover) {
+  .foto__quero { opacity: 0; transform: translateY(6px); transition: opacity .2s var(--sai), transform .2s var(--sai), background-color .2s var(--sai); }
+  .foto:hover .foto__quero, .foto:focus-within .foto__quero { opacity: 1; transform: none; }
+  .foto__legenda { bottom: 14px; transition: bottom .2s var(--sai); }
+  .foto:hover .foto__legenda, .foto:focus-within .foto__legenda { bottom: 58px; }
+}
+
+/* =====================================================================
    RESPONSIVO
    ===================================================================== */
 @media (max-width: 1080px) {
@@ -476,16 +563,11 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   .rodape { grid-template-columns: 1fr 1fr; }
 }
 
-/* telas médias: legenda acima do botão para não encostar */
-@media (max-width: 1279px) {
-  .foto__legenda { bottom: 58px; left: 12px; }
-  .foto__quero { left: 10px; right: 10px; justify-content: center; }
-}
-
 @media (max-width: 959px) {
   html { scroll-padding-top: 64px; }
   .nav { gap: var(--e-2); min-height: 64px; }
   .nav__menu { display: block; }
+  .nav__icones { margin-right: 0; }
   /* o backdrop-filter do .nav vira referência de posição: o painel fica logo abaixo dele */
   .nav__links {
     position: absolute; top: 100%; left: 0; right: 0; z-index: 49;
@@ -499,6 +581,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 
   .hero { grid-template-columns: 1fr; gap: var(--e-5); padding-top: var(--e-4); }
   .hero__foto { order: -1; width: min(100% - 24px, 480px); justify-self: center; }
+  .hero__grande { font-size: 9.2cqi; }
 
   .servicos { grid-template-columns: 1fr; gap: var(--e-4); padding: var(--e-10) 0 var(--e-10) var(--lateral); }
   .servicos__intro { padding-right: var(--lateral); }
@@ -517,7 +600,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   .agendar__foto figcaption { left: var(--lateral); bottom: var(--e-4); }
   .simulador { padding: var(--e-8) var(--lateral); }
 
-  .horario, .duvidas { grid-template-columns: 1fr; gap: var(--e-4); padding-block: var(--e-10); }
+  .horario, .duvidas { grid-template-columns: minmax(0, 1fr); gap: var(--e-4); padding-block: var(--e-10); }
   .rodape { padding-bottom: calc(var(--e-12) + env(safe-area-inset-bottom)); }
 
   .wa-flutuante { display: none; }
@@ -534,7 +617,6 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 }
 
 @media (max-width: 560px) {
-  .status { justify-content: center; text-align: center; }
   .nav__cta { display: none; }
   .hero__acoes .botao { flex: 1 1 100%; }
   .fatos__lista { grid-template-columns: 1fr; }
