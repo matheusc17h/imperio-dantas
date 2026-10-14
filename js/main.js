@@ -274,10 +274,17 @@ if (placa && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
   const fotos = [...sec.querySelectorAll('.galeria > .foto')];
 
   gsap.matchMedia().add({ desk: '(min-width: 960px)', mob: '(max-width: 959px)' }, (ctx) => {
+    if (!ctx.conditions.desk) {
+      // celular: a seção é mais alta que a tela; uma cortina só recolhe para baixo, revelando de cima
+      gsap.set(baixo, { display: 'none' });
+      gsap.set(cima, { height: '100%', transformOrigin: 'bottom' });
+    }
     const tl = gsap.timeline({
       defaults: { ease: 'power3.out' },
       // presa à rolagem: a animação avança e volta conforme a pessoa rola a página
-      scrollTrigger: { trigger: sec, start: 'top 85%', end: 'top 15%', scrub: 0.8 },
+      scrollTrigger: ctx.conditions.desk
+        ? { trigger: sec, start: 'top 85%', end: 'top 15%', scrub: 0.8 }
+        : { trigger: sec, start: 'top 90%', end: 'top 25%', scrub: 0.8 }, // celular: só fundo e texto
     });
     tl.fromTo([cima, baixo], { scaleY: 1 }, { scaleY: 0, duration: 0.8, ease: 'power3.inOut' })
       .from(letrasTitulo, { yPercent: 110, duration: 0.55, stagger: 0.035 }, '-=0.3')
@@ -292,7 +299,14 @@ if (placa && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
       tl.from(miolo(linha1), { y: altura(1), duration: 0.8, stagger: passo(linha1) }, '-=0.25')
         .from(miolo(linha2), { y: altura(-1), duration: 0.8, stagger: passo(linha2) });
     } else {
-      tl.from(fotos, { y: 80, opacity: 0, duration: 0.6, stagger: 0.06 }, '-=0.25');
+      // celular: cada foto tem o próprio gatilho. Fica invisível até chegar perto da tela e
+      // termina de surgir quando o topo dela alcança a metade da tela (50%), seguindo a rolagem.
+      fotos.forEach((foto) => {
+        gsap.from([...foto.children], {
+          y: () => foto.offsetHeight * 0.6, opacity: 0, ease: 'none',
+          scrollTrigger: { trigger: foto, start: 'top 95%', end: 'top 50%', scrub: 0.6, invalidateOnRefresh: true },
+        });
+      });
     }
   });
 })();

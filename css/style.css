@@ -683,9 +683,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   .horario__local .botao { justify-self: center; }
   .horario__local .mapa { width: 100%; }
   .duvidas > .titulo { text-align: center; }
-  .rodape { justify-items: center; text-align: center; }
-  .rodape__col { justify-items: center; }
-  .rodape__rede { justify-self: center; }
+  .rodape__logo { grid-column: 1 / -1; justify-self: center; } /* rodapé: só a logo centralizada */
 
   .wa-flutuante { display: none; }
   .barra-celular {
