@@ -145,7 +145,7 @@ if (placa && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
   const secao = placa.parentElement; // mede a seção: a placa começa recortada (altura visível zero)
   const checar = () => {
     const r = secao.getBoundingClientRect();
-    if (r.top < innerHeight * 0.7 && r.bottom > innerHeight * 0.2) {
+    if (r.top < innerHeight * 0.8 && r.bottom > innerHeight * 0.2) {
       placa.classList.add('placa--visivel');
       removeEventListener('scroll', checar);
       removeEventListener('resize', checar);
@@ -240,7 +240,7 @@ if (placa && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
    2) título e texto entram
    3) desktop: linha 1 sobe de baixo p/ cima, da esquerda p/ direita;
       depois a linha 2 desce de cima p/ baixo, da direita p/ esquerda
-   Roda ao descer até a seção e desfaz ao subir. Sem GSAP ou com "reduzir movimento",
+   Avança conforme a rolagem (scrub) e volta ao subir. Sem GSAP ou com "reduzir movimento",
    a seção aparece normal. */
 (function animarTrabalhos() {
   const sec = document.getElementById('trabalhos');
@@ -276,7 +276,8 @@ if (placa && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
   gsap.matchMedia().add({ desk: '(min-width: 960px)', mob: '(max-width: 959px)' }, (ctx) => {
     const tl = gsap.timeline({
       defaults: { ease: 'power3.out' },
-      scrollTrigger: { trigger: sec, start: 'top 65%', toggleActions: 'play none none reverse' },
+      // presa à rolagem: a animação avança e volta conforme a pessoa rola a página
+      scrollTrigger: { trigger: sec, start: 'top 85%', end: 'top 15%', scrub: 0.8 },
     });
     tl.fromTo([cima, baixo], { scaleY: 1 }, { scaleY: 0, duration: 0.8, ease: 'power3.inOut' })
       .from(letrasTitulo, { yPercent: 110, duration: 0.55, stagger: 0.035 }, '-=0.3')
@@ -295,6 +296,36 @@ if (placa && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
     }
   });
 })();
+
+/* ---------- Caixas que abrem (química e dúvidas): abrir e fechar deslizando ---------- */
+document.querySelectorAll('.quadro__glossario, .duvidas details').forEach((det) => {
+  const resumo = det.querySelector('summary');
+  const caixa = document.createElement('div');
+  caixa.className = 'det__conteudo';
+  [...det.children].filter((c) => c !== resumo).forEach((c) => caixa.append(c));
+  det.append(caixa);
+  if (!window.gsap || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  let animando = false;
+  resumo.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (animando) return;
+    animando = true;
+    if (!det.open) {
+      det.open = true;
+      gsap.fromTo(caixa, { height: 0, opacity: 0 }, {
+        height: 'auto', opacity: 1, duration: 0.5, ease: 'power3.out',
+        onComplete: () => { gsap.set(caixa, { clearProps: 'height' }); animando = false; },
+      });
+      const itens = caixa.querySelectorAll('dl > div');
+      if (itens.length) gsap.from(itens, { y: 14, opacity: 0, duration: 0.45, stagger: 0.07, delay: 0.1, ease: 'power3.out' });
+    } else {
+      gsap.to(caixa, {
+        height: 0, opacity: 0, duration: 0.35, ease: 'power3.in',
+        onComplete: () => { det.open = false; gsap.set(caixa, { clearProps: 'all' }); animando = false; },
+      });
+    }
+  });
+});
 
 /* ---------- Foto ampliada ---------- */
 const dialogo = document.querySelector('[data-ampliada]');

@@ -337,6 +337,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .quadro__glossario summary::-webkit-details-marker { display: none; }
 .quadro__glossario summary::after { content: "+"; font-size: 24px; font-weight: 300; transition: transform .25s var(--sai); }
 .quadro__glossario[open] summary::after { transform: rotate(45deg); }
+.det__conteudo { overflow: hidden; }
 .quadro__glossario dl { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--e-3); padding-bottom: var(--e-2); }
 .quadro__glossario dt { font: 500 var(--t-base)/1.3 var(--display); }
 .quadro__glossario dd { font-size: var(--t-sm); color: var(--texto-escuro-2); }
@@ -360,6 +361,12 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .placa--visivel .quadro__grupo li { animation-delay: calc(.82s + var(--i, 0) * 45ms); }
 .placa--visivel .quadro__glossario { animation-delay: 1.4s; }
 @keyframes placa-abre { from { clip-path: inset(50% 0 50% 0); } to { clip-path: inset(0 0 0 0); } }
+/* celular: a placa é mais alta que a tela, então abre de cima para baixo (o centro ficaria fora da vista) */
+@keyframes placa-abre-celular { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0 0 0 0); } }
+@media (max-width: 959px) {
+  .placa--anima { clip-path: inset(0 0 100% 0); }
+  .placa--anima.placa--visivel { animation: placa-abre-celular 1s var(--sai) both; }
+}
 @keyframes placa-item { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
 @keyframes placa-coroa { from { opacity: 0; transform: translateY(-14px); } to { opacity: 1; transform: none; } }
 
@@ -632,9 +639,17 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   .nav__links.aberto { visibility: visible; opacity: 1; transition-delay: 0s; }
   .nav__links a { padding: 18px 0; border-bottom: 1px solid var(--linha-escura); font: 500 var(--t-lg)/1.2 var(--display); color: var(--branco); background: none; }
 
-  .hero { grid-template-columns: 1fr; gap: var(--e-5); padding-top: var(--e-4); }
-  .hero__foto { order: -1; width: min(100% - 24px, 480px); justify-self: center; }
-  .hero__grande { font-size: 9.2cqi; }
+  /* celular: título primeiro; a foto entra entre o parágrafo e os botões */
+  .hero { grid-template-columns: minmax(0, 1fr); gap: var(--e-3); padding-top: var(--e-4); justify-items: center; text-align: center; }
+  .hero__texto { display: contents; }
+  .hero .status { order: 1; }
+  .hero__titulo { order: 2; }
+  .hero__sub { order: 3; }
+  .hero__foto { order: 4; width: 100%; margin-block: var(--e-1); }
+  .hero__foto img { aspect-ratio: 4 / 3; }
+  .hero__acoes { order: 5; width: 100%; }
+  .hero__fatos { order: 6; width: 100%; }
+  .hero__grande { font-size: 8.4vw; }
 
   .servicos { grid-template-columns: 1fr; gap: var(--e-4); padding: var(--e-10) 0 var(--e-10) var(--lateral); }
   .servicos__intro { padding-right: var(--lateral); }
@@ -653,6 +668,24 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 
   .horario, .duvidas { grid-template-columns: minmax(0, 1fr); gap: var(--e-4); padding-block: var(--e-10); }
   .rodape { padding-bottom: calc(var(--e-12) + env(safe-area-inset-bottom)); }
+
+  /* celular: títulos e parágrafos centralizados */
+  .hero__acoes, .hero__fatos { justify-content: center; }
+  .hero__fatos > div { text-align: center; }
+  .servicos__intro { justify-items: center; text-align: center; }
+  .cartao h3, .cartao > p:not(.cartao__valor) { text-align: center; }
+  .trabalhos__topo { flex-direction: column; align-items: center; text-align: center; }
+  .simulador > .titulo, .simulador__intro { text-align: center; }
+  .simulador__intro { justify-self: center; }
+  .agendar__foto figcaption { text-align: center; }
+  .horario__tabela > .titulo { text-align: center; }
+  .horario__local { justify-items: center; text-align: center; }
+  .horario__local .botao { justify-self: center; }
+  .horario__local .mapa { width: 100%; }
+  .duvidas > .titulo { text-align: center; }
+  .rodape { justify-items: center; text-align: center; }
+  .rodape__col { justify-items: center; }
+  .rodape__rede { justify-self: center; }
 
   .wa-flutuante { display: none; }
   .barra-celular {
