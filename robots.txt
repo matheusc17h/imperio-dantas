@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# PREENCHER: troque [DOMINIO] pelo domínio real
+Sitemap: https://[DOMINIO]/sitemap.xml
