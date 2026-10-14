@@ -6,8 +6,8 @@
 
 const CONFIG = {
   whatsapp: '5511945046553',
-  // PREENCHER: endereço completo, usado no mapa e no "Abrir no Google Maps"
-  endereco: '[ENDERECO COMPLETO], [CIDADE] - [UF]',
+  // endereço usado no mapa e no "Abrir no Google Maps"
+  endereco: 'Estrada do Pequiá, 1828 - Vila Silviania, Carapicuíba - SP, 06381-095',
 };
 
 // Horário de funcionamento (0 = domingo ... 6 = sábado). null = fechado.
@@ -246,7 +246,7 @@ if (form) {
 const mapa = document.querySelector('[data-mapa]');
 const comoChegar = document.querySelector('[data-como-chegar]');
 if (preenchido(CONFIG.endereco)) {
-  const q = encodeURIComponent(`Império Dantas, ${CONFIG.endereco}`);
+  const q = encodeURIComponent(CONFIG.endereco);
   if (comoChegar) comoChegar.href = `https://www.google.com/maps/search/?api=1&query=${q}`;
   if (mapa && 'IntersectionObserver' in window) {
     new IntersectionObserver((entradas, obs) => {
