@@ -204,6 +204,13 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   background-size: 220% 100%; background-position: 100% 0;
   animation: brilho 1.6s var(--sai) calc(var(--atraso-intro) + .2s) both;
 }
+/* título quebrado em letras pelo JS: o cromado passa para cada letra */
+.hero__grande--split { background: none; animation: none; color: var(--branco); }
+.hero__grande--split > span:not(.sr) { position: relative; }
+.letra-hero {
+  display: inline-block; background-image: var(--cromo); background-repeat: no-repeat;
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
 @keyframes brilho { from { background-position: 0 0; } to { background-position: 100% 0; } }
 .hero__sub { max-width: 40ch; font-size: var(--t-md); line-height: 1.5; color: var(--texto-escuro-2); }
 .hero__acoes { display: flex; flex-wrap: wrap; gap: var(--e-2); }

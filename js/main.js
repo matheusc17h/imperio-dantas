@@ -146,6 +146,49 @@ if (placa && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
   checar();
 }
 
+/* ---------- Título do topo: efeito SplitText (adaptado do React Bits com GSAP) ----------
+   "Corte na régua, química sem susto." entra letra por letra logo após o pré-loader.
+   O gradiente cromado é aplicado em cada letra alinhado à linha, para continuar contínuo. */
+(function splitTitulo() {
+  const titulo = document.querySelector('.hero__grande');
+  if (!titulo || !window.gsap) return;
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  const linhas = [...titulo.children]; // cada <span> é uma linha
+  const original = linhas.map((l) => l.textContent).join(' ');
+  linhas.forEach((linha) => {
+    linha.setAttribute('aria-hidden', 'true');
+    linha.innerHTML = [...linha.textContent]
+      .map((ch) => (ch === ' ' ? ' ' : `<span class="letra-hero">${ch}</span>`))
+      .join('');
+  });
+  const leitor = document.createElement('span');
+  leitor.className = 'sr';
+  leitor.textContent = original; // leitores de tela leem a frase inteira
+  titulo.append(leitor);
+  titulo.classList.add('hero__grande--split');
+
+  // gradiente cromado contínuo: cada letra recebe o pedaço do gradiente da sua linha
+  const pintar = () => {
+    linhas.forEach((linha) => {
+      const largura = linha.offsetWidth;
+      linha.querySelectorAll('.letra-hero').forEach((l) => {
+        l.style.backgroundSize = `${largura}px 100%`;
+        l.style.backgroundPosition = `${-l.offsetLeft}px 0`;
+      });
+    });
+  };
+  const iniciar = () => {
+    pintar();
+    gsap.fromTo(titulo.querySelectorAll('.letra-hero'),
+      { opacity: 0, y: 40 },
+      { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out', stagger: 0.04, delay: 1.85 });
+  };
+  addEventListener('resize', pintar);
+  (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(iniciar);
+  gsap.set(titulo.querySelectorAll('.letra-hero'), { opacity: 0 }); // escondidas até a animação começar
+})();
+
 /* ---------- Foto do topo: efeito "tilted card" (adaptado do React Bits com GSAP) ----------
    A foto inclina seguindo o mouse, cresce um pouco e uma etiqueta acompanha o cursor.
    Só em telas com mouse e sem "reduzir movimento". */
