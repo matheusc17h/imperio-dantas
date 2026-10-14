@@ -127,6 +127,25 @@ if (trilho && setas.length) {
   estado();
 }
 
+/* ---------- Tabela de preços: a placa aparece e depois o conteúdo entra em sequência ---------- */
+const placa = document.querySelector('.quadro__placa');
+if (placa && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  placa.classList.add('placa--anima');
+  placa.querySelectorAll('.quadro__grupo li').forEach((li, i) => li.style.setProperty('--i', i));
+  const secao = placa.parentElement; // mede a seção: a placa começa recortada (altura visível zero)
+  const checar = () => {
+    const r = secao.getBoundingClientRect();
+    if (r.top < innerHeight * 0.7 && r.bottom > innerHeight * 0.2) {
+      placa.classList.add('placa--visivel');
+      removeEventListener('scroll', checar);
+      removeEventListener('resize', checar);
+    }
+  };
+  addEventListener('scroll', checar, { passive: true });
+  addEventListener('resize', checar);
+  checar();
+}
+
 /* ---------- Foto ampliada ---------- */
 const dialogo = document.querySelector('[data-ampliada]');
 if (dialogo && typeof dialogo.showModal === 'function') {
