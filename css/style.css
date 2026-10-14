@@ -396,6 +396,9 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .cortina { position: absolute; left: 50%; width: 100vw; margin-left: -50vw; height: 50.5%; background: var(--parede); z-index: 3; pointer-events: none; }
 .cortina--cima { top: 0; transform-origin: top; }
 .cortina--baixo { bottom: 0; transform-origin: bottom; }
+/* texto que "se escreve": cada palavra é uma máscara; letras/palavras sobem de dentro dela */
+.pal { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: .12em; margin-bottom: -.12em; }
+.pal__in, .letra { display: inline-block; }
 .ampliada { padding: 0; border: 0; background: transparent; max-width: min(92vw, 720px); overflow: visible; }
 .ampliada::backdrop { background: rgba(0,0,0,.9); }
 .ampliada img { max-height: 86vh; width: auto; margin: 0 auto; }

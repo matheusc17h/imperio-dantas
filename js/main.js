@@ -165,7 +165,23 @@ if (placa && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
   baixo.className = 'cortina cortina--baixo';
   sec.prepend(cima, baixo);
 
-  const topo = sec.querySelectorAll('.trabalhos__topo > *');
+  // quebra o texto em palavras (e letras, no título) com máscara, para ele "se escrever" aos poucos
+  const dividir = (el, letras) => {
+    const texto = el.textContent.trim();
+    el.setAttribute('aria-label', texto);
+    el.innerHTML = texto.split(/\s+/).map((palavra) => {
+      const miolo = letras
+        ? [...palavra].map((ch) => `<span class="letra">${ch}</span>`).join('')
+        : palavra;
+      return `<span class="pal" aria-hidden="true"><span class="pal__in">${miolo}</span></span>`;
+    }).join(' ');
+  };
+  const titulo = sec.querySelector('.trabalhos__topo h2');
+  const texto = sec.querySelector('.trabalhos__topo p');
+  dividir(titulo, true);
+  dividir(texto, false);
+  const letrasTitulo = titulo.querySelectorAll('.letra');
+  const palavrasTexto = texto.querySelectorAll('.pal__in');
   const fotos = [...sec.querySelectorAll('.galeria > .foto')];
 
   gsap.matchMedia().add({ desk: '(min-width: 960px)', mob: '(max-width: 959px)' }, (ctx) => {
@@ -174,7 +190,8 @@ if (placa && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
       scrollTrigger: { trigger: sec, start: 'top 65%', toggleActions: 'play none none reverse' },
     });
     tl.fromTo([cima, baixo], { scaleY: 1 }, { scaleY: 0, duration: 0.8, ease: 'power3.inOut' })
-      .from(topo, { y: 40, opacity: 0, duration: 0.6, stagger: 0.12 }, '-=0.35');
+      .from(letrasTitulo, { yPercent: 110, duration: 0.55, stagger: 0.035 }, '-=0.3')
+      .from(palavrasTexto, { yPercent: 110, opacity: 0, duration: 0.45, stagger: 0.03 }, '-=0.35');
     if (ctx.conditions.desk) {
       const linha1 = fotos.slice(0, 6);
       const linha2 = fotos.slice(6, 12).reverse(); // da direita para a esquerda
