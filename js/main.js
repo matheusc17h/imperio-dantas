@@ -146,6 +146,42 @@ if (placa && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
   checar();
 }
 
+/* ---------- Foto do topo: efeito "tilted card" (adaptado do React Bits com GSAP) ----------
+   A foto inclina seguindo o mouse, cresce um pouco e uma etiqueta acompanha o cursor.
+   Só em telas com mouse e sem "reduzir movimento". */
+(function tiltHero() {
+  const fig = document.querySelector('[data-tilt]');
+  if (!fig || !window.gsap) return;
+  if (!matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const miolo = fig.querySelector('.tilt__miolo');
+  const legenda = fig.querySelector('.tilt__legenda');
+  const AMPLITUDE = 10;   // graus máximos de inclinação
+  const ESCALA = 1.04;    // zoom ao passar o mouse
+  const mola = { duration: 0.6, ease: 'power3.out' };
+  const rotX = gsap.quickTo(miolo, 'rotationX', mola);
+  const rotY = gsap.quickTo(miolo, 'rotationY', mola);
+  const escala = gsap.quickTo(miolo, 'scale', mola);
+  const legX = gsap.quickTo(legenda, 'x', { duration: 0.25, ease: 'power3.out' });
+  const legY = gsap.quickTo(legenda, 'y', { duration: 0.25, ease: 'power3.out' });
+  const legGiro = gsap.quickTo(legenda, 'rotation', { duration: 0.4, ease: 'power3.out' });
+  const legOpac = gsap.quickTo(legenda, 'opacity', { duration: 0.3 });
+  let ultimoY = 0;
+  fig.addEventListener('mouseenter', () => { escala(ESCALA); legOpac(1); });
+  fig.addEventListener('mousemove', (e) => {
+    const r = fig.getBoundingClientRect();
+    const dx = e.clientX - r.left - r.width / 2;
+    const dy = e.clientY - r.top - r.height / 2;
+    rotX((dy / (r.height / 2)) * -AMPLITUDE);
+    rotY((dx / (r.width / 2)) * AMPLITUDE);
+    legX(e.clientX - r.left);
+    legY(e.clientY - r.top);
+    legGiro(-(dy - ultimoY) * 0.6);
+    ultimoY = dy;
+  });
+  fig.addEventListener('mouseleave', () => { rotX(0); rotY(0); escala(1); legOpac(0); legGiro(0); });
+})();
+
 /* ---------- Trabalhos da casa (GSAP + ScrollTrigger) ----------
    1) o fundo preto abre do centro (cortinas cinza recolhem para cima e para baixo)
    2) título e texto entram

@@ -174,12 +174,16 @@
         <!-- PREENCHER e remover "hidden": nota real do Google
         <p class="hero__google" hidden><strong>[NOTA]</strong> no Google, [Nº AVALIAÇÕES] avaliações</p> -->
       </div>
-      <figure class="hero__foto">
+      <!-- foto com efeito "tilted card": inclina em 3D seguindo o mouse (desktop) -->
+      <figure class="hero__foto" data-tilt>
+        <div class="tilt__miolo">
         <img src="img/site/salao-interior-1000.webp"
              srcset="img/site/salao-interior-640.webp 640w, img/site/salao-interior-1000.webp 1000w, img/site/salao-interior-1400.webp 1400w"
              sizes="(min-width: 960px) 44vw, 100vw"
              width="1000" height="1244" fetchpriority="high"
              alt="Interior do salão Império Dantas com espelhos redondos, ring light, ripado de madeira e cadeiras pretas">
+        </div>
+        <figcaption class="tilt__legenda" aria-hidden="true">Nosso salão, Vila Silviania</figcaption>
       </figure>
     </section>
 
