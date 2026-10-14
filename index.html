@@ -36,16 +36,6 @@
 
   <link rel="stylesheet" href="css/style.css">
 
-  <!-- Pré-loader só na primeira visita da sessão e nunca com "reduzir movimento" -->
-  <script>
-    try {
-      if (sessionStorage.getItem('intro-vista') || matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        document.documentElement.classList.add('sem-intro');
-      } else {
-        sessionStorage.setItem('intro-vista', '1');
-      }
-    } catch (e) { document.documentElement.classList.add('sem-intro'); }
-  </script>
 
   <!-- Dados estruturados: salão. Preços e horários iguais ao quadro de preços da página -->
   <script type="application/ld+json">

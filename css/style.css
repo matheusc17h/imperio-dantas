@@ -40,7 +40,6 @@
   --atraso-intro: 1.9s;
   --nav-h: 72px;
 }
-.sem-intro { --atraso-intro: 0s; }
 
 /* ---------- Base ---------- */
 *, *::before, *::after { box-sizing: border-box; }
@@ -96,7 +95,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   background: var(--preto); cursor: pointer;
   animation: intro-sai .4s var(--entra) 1.6s forwards;
 }
-.sem-intro .intro, .intro.intro--fim { display: none; }
+.intro.intro--fim { display: none; }
 .intro__selo { position: relative; width: min(80vw, 420px); aspect-ratio: 1; text-align: center; color: var(--branco); }
 .intro__circulo { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); overflow: visible; }
 .intro__circulo circle {
@@ -653,5 +652,6 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0s !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
-  .intro { display: none; }
+  /* pré-loader aparece sempre: com 'reduzir movimento' a logo surge pronta e some depois de 1,2s */
+  .intro { animation-duration: .3s !important; animation-delay: 1.2s !important; }
 }
