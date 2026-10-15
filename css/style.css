@@ -37,7 +37,7 @@
   --borda: max(var(--lateral), calc((100vw - var(--largura)) / 2 + var(--lateral)));
   --sai: cubic-bezier(.16, 1, .3, 1);
   --entra: cubic-bezier(.7, 0, .84, 0);
-  --atraso-intro: 1.9s;
+  --atraso-intro: .9s;
   --nav-h: 72px;
 }
 
@@ -88,50 +88,52 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 
 /* =====================================================================
    PRÉ-LOADER: a logo se monta. Letras uma a uma, círculo se desenha,
-   coroa desce, base e navalha sobem. Some em ~2s.
+   coroa desce, base e navalha sobem. Sai quando o HTML fica pronto
+   (no mínimo 0,6s); pelo CSS nunca passa de 1s, mesmo sem JS.
    ===================================================================== */
 .intro {
   position: fixed; inset: 0; z-index: 300; display: grid; place-items: center;
   background: var(--preto); cursor: pointer;
-  animation: intro-sai .4s var(--entra) 1.6s forwards;
+  animation: intro-sai .25s var(--entra) .75s forwards;
 }
+.intro.intro--sai { animation: intro-sai .25s var(--entra) forwards; }
 .intro.intro--fim { display: none; }
 .intro__selo { position: relative; width: min(80vw, 420px); aspect-ratio: 1; text-align: center; color: var(--branco); }
 .intro__circulo { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); overflow: visible; }
 .intro__circulo circle {
   fill: none; stroke: var(--branco); stroke-width: .6;
   stroke-dasharray: 100; stroke-dashoffset: 100;
-  animation: traco 1.1s var(--sai) .1s forwards;
+  animation: traco .55s var(--sai) .05s forwards;
 }
-.intro__coroa { position: absolute; left: 50%; top: 6%; width: 28%; opacity: 0; transform: translate(-50%, -16px); animation: coroa .45s var(--sai) .8s forwards; }
+.intro__coroa { position: absolute; left: 50%; top: 6%; width: 28%; opacity: 0; transform: translate(-50%, -16px); animation: coroa .25s var(--sai) .4s forwards; }
 .intro__imperio, .intro__dantas { position: absolute; left: 0; right: 0; font-family: var(--display); line-height: 1; white-space: nowrap; }
 .intro__imperio { top: 37%; font-size: clamp(13px, 4.2vw, 20px); letter-spacing: .48em; padding-left: .48em; }
 .intro__dantas { top: 44%; font-size: clamp(50px, 16.5vw, 86px); letter-spacing: .02em; }
 .intro__imperio span, .intro__dantas span {
   display: inline-block; opacity: 0; transform: translateY(.3em); filter: blur(5px);
-  animation: letra .3s var(--sai) forwards;
+  animation: letra .2s var(--sai) forwards;
 }
-.intro__imperio span:nth-child(1) { animation-delay: .04s; }
-.intro__imperio span:nth-child(2) { animation-delay: .08s; }
-.intro__imperio span:nth-child(3) { animation-delay: .12s; }
-.intro__imperio span:nth-child(4) { animation-delay: .16s; }
-.intro__imperio span:nth-child(5) { animation-delay: .2s; }
-.intro__imperio span:nth-child(6) { animation-delay: .24s; }
-.intro__imperio span:nth-child(7) { animation-delay: .28s; }
-.intro__dantas span:nth-child(1) { animation-delay: .3s; }
-.intro__dantas span:nth-child(2) { animation-delay: .37s; }
-.intro__dantas span:nth-child(3) { animation-delay: .44s; }
-.intro__dantas span:nth-child(4) { animation-delay: .51s; }
-.intro__dantas span:nth-child(5) { animation-delay: .58s; }
-.intro__dantas span:nth-child(6) { animation-delay: .65s; }
+.intro__imperio span:nth-child(1) { animation-delay: .02s; }
+.intro__imperio span:nth-child(2) { animation-delay: .04s; }
+.intro__imperio span:nth-child(3) { animation-delay: .06s; }
+.intro__imperio span:nth-child(4) { animation-delay: .08s; }
+.intro__imperio span:nth-child(5) { animation-delay: .1s; }
+.intro__imperio span:nth-child(6) { animation-delay: .12s; }
+.intro__imperio span:nth-child(7) { animation-delay: .14s; }
+.intro__dantas span:nth-child(1) { animation-delay: .15s; }
+.intro__dantas span:nth-child(2) { animation-delay: .185s; }
+.intro__dantas span:nth-child(3) { animation-delay: .22s; }
+.intro__dantas span:nth-child(4) { animation-delay: .255s; }
+.intro__dantas span:nth-child(5) { animation-delay: .29s; }
+.intro__dantas span:nth-child(6) { animation-delay: .325s; }
 .intro__salao, .intro__unissex {
   position: absolute; left: 0; right: 0; opacity: 0;
   font: 400 clamp(9px, 2.5vw, 12px)/1 var(--display); letter-spacing: .4em; padding-left: .4em; text-transform: uppercase;
-  animation: aparece .35s var(--sai) .95s forwards;
+  animation: aparece .2s var(--sai) .48s forwards;
 }
 .intro__salao { top: 63.5%; }
-.intro__unissex { top: 68.5%; animation-delay: 1s; }
-.intro__navalha { position: absolute; left: 50%; top: 73.5%; width: 46%; opacity: 0; transform: translate(-50%, 12px); animation: navalha .45s var(--sai) 1.05s forwards; }
+.intro__unissex { top: 68.5%; animation-delay: .5s; }
+.intro__navalha { position: absolute; left: 50%; top: 73.5%; width: 46%; opacity: 0; transform: translate(-50%, 12px); animation: navalha .25s var(--sai) .52s forwards; }
 @keyframes traco { to { stroke-dashoffset: 0; } }
 @keyframes letra { to { opacity: 1; transform: none; filter: none; } }
 @keyframes coroa { to { opacity: 1; transform: translate(-50%, 0); } }
@@ -551,6 +553,26 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .barra-celular { display: none; }
 
 /* =====================================================================
+   QUEM ATENDE E AVALIAÇÕES (ocultas até ter conteúdo real)
+   ===================================================================== */
+.equipe { max-width: var(--largura); margin: 0 auto; padding: var(--e-12) var(--lateral); }
+.equipe__lista { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--e-4); margin-top: var(--e-6); }
+.equipe__pessoa { display: grid; gap: var(--e-1); }
+.equipe__pessoa img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; margin-bottom: var(--e-1); }
+.equipe__pessoa h3 { font: 500 var(--t-lg)/1.1 var(--display); }
+.equipe__pessoa p { font-size: var(--t-sm); color: var(--texto-escuro-2); }
+.avaliacoes { display: grid; grid-template-columns: minmax(240px, 380px) minmax(0, 1fr); gap: var(--e-8); padding: var(--e-12) var(--borda); background: var(--parede); color: var(--preto); }
+.avaliacoes__nota p { margin-top: var(--e-1); color: var(--texto-claro-2); }
+.avaliacoes__lista { display: grid; gap: var(--e-3); }
+.avaliacoes blockquote { margin: 0; padding-left: var(--e-3); border-left: 1px solid var(--preto); }
+.avaliacoes blockquote p { font: 500 var(--t-md)/1.4 var(--display); }
+.avaliacoes blockquote footer { margin-top: var(--e-1); font-size: var(--t-sm); color: var(--texto-claro-2); }
+@media (max-width: 959px) {
+  .avaliacoes { grid-template-columns: minmax(0, 1fr); gap: var(--e-4); text-align: center; }
+  .avaliacoes blockquote { padding-left: 0; border-left: 0; }
+}
+
+/* =====================================================================
    AGENDAMENTO: tela em 4 passos (abre por cima da página)
    Desktop: painel no centro. Celular: ocupa a tela inteira.
    ===================================================================== */
@@ -868,6 +890,6 @@ html.agenda-aberta, html.agenda-aberta body { overflow: hidden; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0s !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
-  /* pré-loader aparece sempre: com 'reduzir movimento' a logo surge pronta e some depois de 1,2s */
-  .intro { animation-duration: .3s !important; animation-delay: 1.2s !important; }
+  /* com 'reduzir movimento' não há pré-loader */
+  .intro { display: none !important; }
 }

@@ -46,14 +46,42 @@ function linkWhatsApp(mensagem) {
 }
 
 document.querySelectorAll('[data-wa]').forEach((a) => { a.href = linkWhatsApp(a.dataset.wa); });
-document.querySelectorAll('[data-agendar]').forEach((a) => {
-  a.href = linkWhatsApp(`Olá! Quero agendar ${a.dataset.agendar}. Qual o melhor horário?`);
-});
+// Cartões e tabela: mensagem com nome e preço do serviço. O clique abre a tela de agendamento;
+// este link é o caminho reserva (navegador sem suporte à tela).
+const mensagemServico = (nome) => {
+  const s = SERVICOS.find((x) => x.nome === nome);
+  return `Olá! Vim pelo site e quero agendar: ${nome}${s ? ` (${brl(s.preco)})` : ''}.`;
+};
+document.querySelectorAll('[data-agendar]').forEach((a) => { a.href = linkWhatsApp(mensagemServico(a.dataset.agendar)); });
 document.querySelectorAll('[data-servico]').forEach((a) => {
   const { servico, preco, min } = a.dataset;
-  a.href = linkWhatsApp(`Olá! Quero agendar ${servico} (${brl(Number(preco))}, ${min} min). Qual o melhor horário?`);
+  a.href = linkWhatsApp(mensagemServico(servico));
   a.setAttribute('aria-label', `Agendar ${servico}, ${brl(Number(preco))}, ${min} minutos`);
 });
+
+/* ---------- Tempos: a tabela de preços (data-min) é a fonte única ----------
+   Repete o tempo na própria tabela, nos cartões, no FAQ e no JSON-LD do FAQ. */
+document.querySelectorAll('.quadro [data-servico] .quadro__tempo').forEach((el) => {
+  el.textContent = `${el.closest('[data-servico]').dataset.min} min`;
+});
+document.querySelectorAll('[data-tempo-de]').forEach((el) => {
+  const s = SERVICOS.find((x) => x.nome === el.dataset.tempoDe);
+  if (s) el.textContent = `${s.min} ${el.dataset.unidade || 'min'}`;
+});
+(function faqJsonLd() {
+  const script = [...document.querySelectorAll('script[type="application/ld+json"]')].find((s) => s.textContent.includes('"FAQPage"'));
+  const itens = document.querySelectorAll('.duvidas details');
+  if (!script || !itens.length) return;
+  script.textContent = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [...itens].map((d) => ({
+      '@type': 'Question',
+      name: d.querySelector('summary').textContent.trim(),
+      acceptedAnswer: { '@type': 'Answer', text: d.querySelector('p').textContent.trim() },
+    })),
+  });
+})();
 // "Quero esse" (trabalhos da casa): abre o agendamento com o serviço da foto já marcado
 document.querySelectorAll('[data-quero]').forEach((a) => {
   a.setAttribute('aria-label', `Quero esse: ${a.dataset.quero}. Abrir o agendamento com o serviço marcado`);
@@ -104,6 +132,10 @@ if (intro) {
   intro.addEventListener('click', fim);
   intro.addEventListener('animationend', (e) => { if (e.animationName === 'intro-sai') fim(); });
   addEventListener('keydown', fim, { once: true });
+  // sai quando o HTML está pronto (não espera as imagens), depois de no mínimo 0,6s para a logo se montar.
+  // O CSS tira a tela sozinho em 1s, mesmo se o JS falhar.
+  const sair = () => setTimeout(() => intro.classList.add('intro--sai'), Math.max(0, 600 - performance.now()));
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', sair); else sair();
 }
 
 /* ---------- Menu (celular) ---------- */
@@ -195,7 +227,7 @@ if (placa && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
     pintar();
     gsap.fromTo(titulo.querySelectorAll('.letra-hero'),
       { opacity: 0, y: 40 },
-      { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out', stagger: 0.04, delay: 1.85 });
+      { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out', stagger: 0.04, delay: 0.85 });
   };
   addEventListener('resize', pintar);
   (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(iniciar);
