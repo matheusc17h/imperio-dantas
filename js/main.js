@@ -8,6 +8,10 @@ const CONFIG = {
   whatsapp: '5511945046553',
   // endereço usado no mapa e no "Abrir no Google Maps"
   endereco: 'Estrada do Pequiá, 1828 - Vila Silviania, Carapicuíba - SP, 06381-095',
+  // quem atende (aparece no passo 2 do agendamento). Ao mudar, mudar também em api/_lib.js
+  profissionais: ['Gabriel Dantas'],
+  // endereço da API de agendamento. Sem API no ar, o pedido segue pronto para o WhatsApp
+  api: '/api',
 };
 
 // Horário de funcionamento (0 = domingo ... 6 = sábado). null = fechado.
@@ -22,10 +26,19 @@ const HORARIOS = {
 };
 
 const DIAS = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
+const SEMANA_CURTA = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
 const brl = (v) => 'R$ ' + v.toLocaleString('pt-BR');
+const escapar = (txt) => String(txt).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const duracao = (t) => (t >= 60 ? `${Math.floor(t / 60)}h${t % 60 ? String(t % 60).padStart(2, '0') : ''}` : `${t} min`);
 const minutos = (hhmm) => { const [h, m] = hhmm.split(':').map(Number); return h * 60 + m; };
 const hora = (hhmm) => hhmm.replace(':00', 'h').replace(':', 'h');
 const preenchido = (txt) => txt && !txt.includes('[');
+
+// serviços: a tabela de preços do index.html é a fonte única
+const SERVICOS = [...document.querySelectorAll('.quadro [data-servico]')].map((a) => ({
+  nome: a.dataset.servico, preco: Number(a.dataset.preco), min: Number(a.dataset.min),
+}));
 
 /* ---------- WhatsApp: um lugar só para montar os links ---------- */
 function linkWhatsApp(mensagem) {
@@ -41,19 +54,9 @@ document.querySelectorAll('[data-servico]').forEach((a) => {
   a.href = linkWhatsApp(`Olá! Quero agendar ${servico} (${brl(Number(preco))}, ${min} min). Qual o melhor horário?`);
   a.setAttribute('aria-label', `Agendar ${servico}, ${brl(Number(preco))}, ${min} minutos`);
 });
-// "Quero esse" (trabalhos da casa): leva ao simulador com o serviço da foto já marcado
+// "Quero esse" (trabalhos da casa): abre o agendamento com o serviço da foto já marcado
 document.querySelectorAll('[data-quero]').forEach((a) => {
-  a.setAttribute('aria-label', `Quero esse: ${a.dataset.quero}. Ir para Monte sua visita com o serviço marcado`);
-  a.addEventListener('click', () => {
-    const form = document.querySelector('[data-simulador]');
-    if (!form) return;
-    const nomes = a.dataset.servicos.split('|');
-    form.querySelectorAll('input[name="servico"]').forEach((c) => {
-      const nome = c.closest('label').querySelector('span').firstChild.textContent.trim();
-      c.checked = nomes.includes(nome);
-    });
-    form.dispatchEvent(new Event('change', { bubbles: true }));
-  });
+  a.setAttribute('aria-label', `Quero esse: ${a.dataset.quero}. Abrir o agendamento com o serviço marcado`);
 });
 
 /* ---------- Hora em São Paulo (independe do fuso de quem visita) ---------- */
@@ -279,32 +282,42 @@ if (placa && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
       gsap.set(baixo, { display: 'none' });
       gsap.set(cima, { height: '100%', transformOrigin: 'bottom' });
     }
+    const topoNav = () => `top ${document.querySelector('[data-nav]')?.offsetHeight || 0}px`;
+    // 1ª parte: fundo abre e o texto se escreve enquanto a seção sobe até encostar no menu
     const tl = gsap.timeline({
-      defaults: { ease: 'power3.out' },
+      defaults: { ease: 'power2.out' },
       // presa à rolagem: a animação avança e volta conforme a pessoa rola a página
       scrollTrigger: ctx.conditions.desk
-        ? { trigger: sec, start: 'top 85%', end: 'top 15%', scrub: 0.8 }
-        : { trigger: sec, start: 'top 90%', end: 'top 25%', scrub: 0.8 }, // celular: só fundo e texto
+        ? { trigger: sec, start: 'top 90%', end: topoNav, scrub: 1.2 }
+        : { trigger: sec, start: 'top 95%', end: 'top 5%', scrub: 1.2 }, // celular: só fundo e texto
     });
-    tl.fromTo([cima, baixo], { scaleY: 1 }, { scaleY: 0, duration: 0.8, ease: 'power3.inOut' })
-      .from(letrasTitulo, { yPercent: 110, duration: 0.55, stagger: 0.035 }, '-=0.3')
-      .from(palavrasTexto, { yPercent: 110, opacity: 0, duration: 0.45, stagger: 0.03 }, '-=0.35');
+    tl.fromTo([cima, baixo], { scaleY: 1 }, { scaleY: 0, duration: 1, ease: 'power2.inOut' })
+      .from(letrasTitulo, { yPercent: 110, duration: 0.7, stagger: 0.05 }, '-=0.2')
+      .from(palavrasTexto, { yPercent: 110, opacity: 0, duration: 0.6, stagger: 0.05 }, '-=0.3');
     if (ctx.conditions.desk) {
+      // 2ª parte (desktop): a seção fica parada na tela e as fotos entram com calma
+      // enquanto a pessoa rola, uma a uma. Só depois a página segue.
       const linha1 = fotos.slice(0, 6);
       const linha2 = fotos.slice(6, 12).reverse(); // da direita para a esquerda
       // cada foto surge dentro do próprio quadro (o quadro tem overflow: hidden), como máscara
       const miolo = (linha) => linha.flatMap((f) => [...f.children]);
-      const passo = (linha) => (i, el) => linha.indexOf(el.closest('.foto')) * 0.09;
+      const passo = (linha) => (i, el) => linha.indexOf(el.closest('.foto')) * 0.35;
       const altura = (sinal) => (i, el) => sinal * el.closest('.foto').offsetHeight; // desloca a altura do quadro
-      tl.from(miolo(linha1), { y: altura(1), duration: 0.8, stagger: passo(linha1) }, '-=0.25')
-        .from(miolo(linha2), { y: altura(-1), duration: 0.8, stagger: passo(linha2) });
+      gsap.timeline({
+        defaults: { ease: 'power2.out' },
+        scrollTrigger: { trigger: sec, start: topoNav, end: '+=170%', scrub: 1.2, pin: true, anticipatePin: 1, invalidateOnRefresh: true },
+      })
+        // fromTo (e não from): com invalidateOnRefresh, o "from" gravaria a posição escondida como final
+        .fromTo(miolo(linha1), { y: altura(1) }, { y: 0, duration: 1, stagger: passo(linha1) })
+        .fromTo(miolo(linha2), { y: altura(-1) }, { y: 0, duration: 1, stagger: passo(linha2) }, '+=0.2')
+        .to({}, { duration: 0.4 }); // respiro: tudo montado antes de soltar a seção
     } else {
-      // celular: cada foto tem o próprio gatilho. Fica invisível até chegar perto da tela e
-      // termina de surgir quando o topo dela alcança a metade da tela (50%), seguindo a rolagem.
+      // celular: cada foto tem o próprio gatilho. Começa a surgir quando entra na tela e
+      // termina quando o topo dela passa um pouco da metade, acompanhando a rolagem com calma.
       fotos.forEach((foto) => {
-        gsap.from([...foto.children], {
-          y: () => foto.offsetHeight * 0.6, opacity: 0, ease: 'none',
-          scrollTrigger: { trigger: foto, start: 'top 95%', end: 'top 50%', scrub: 0.6, invalidateOnRefresh: true },
+        gsap.fromTo([...foto.children], { y: () => foto.offsetHeight * 0.45, opacity: 0 }, {
+          y: 0, opacity: 1, ease: 'power2.out',
+          scrollTrigger: { trigger: foto, start: 'top 100%', end: 'top 40%', scrub: 1.2, invalidateOnRefresh: true },
         });
       });
     }
@@ -341,6 +354,20 @@ document.querySelectorAll('.quadro__glossario, .duvidas details').forEach((det) 
   });
 });
 
+/* ---------- Dúvidas: as perguntas entram uma de cada vez, da direita para a esquerda ----------
+   Na ordem da lista, quando a seção chega na tela. Ao voltar para cima, saem e entram de novo. */
+(function animarDuvidas() {
+  const perguntas = document.querySelectorAll('.duvidas details');
+  if (!perguntas.length || !window.gsap || !window.ScrollTrigger) return;
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  gsap.registerPlugin(ScrollTrigger);
+  gsap.fromTo(perguntas, { x: 120, opacity: 0 }, {
+    x: 0, opacity: 1, duration: 0.8, ease: 'power3.out', stagger: 0.18,
+    clearProps: 'transform', // sem transform depois de pronta: não atrapalha o abrir e fechar
+    scrollTrigger: { trigger: '.duvidas__lista', start: 'top 80%', toggleActions: 'play none none reverse' },
+  });
+})();
+
 /* ---------- Foto ampliada ---------- */
 const dialogo = document.querySelector('[data-ampliada]');
 if (dialogo && typeof dialogo.showModal === 'function') {
@@ -357,54 +384,14 @@ if (dialogo && typeof dialogo.showModal === 'function') {
   document.querySelectorAll('[data-ampliar]').forEach((b) => b.addEventListener('click', () => { location.href = b.dataset.ampliar; }));
 }
 
-/* ---------- Simulador: Monte sua visita ---------- */
+/* ---------- Simulador: Monte sua visita ----------
+   Soma os serviços marcados e continua no agendamento (passo 2) com eles já escolhidos. */
 const form = document.querySelector('[data-simulador]');
 if (form) {
-  // a lista de serviços vem da tabela de preços (fonte única)
-  const servicos = [...document.querySelectorAll('[data-servico]')].map((a) => ({
-    nome: a.dataset.servico, preco: Number(a.dataset.preco), min: Number(a.dataset.min),
-  }));
   const chips = form.querySelector('[data-chips]');
-  chips.innerHTML = servicos.map((s, i) =>
+  chips.innerHTML = SERVICOS.map((s, i) =>
     `<label><input type="checkbox" name="servico" value="${i}"><span>${s.nome} <small>${brl(s.preco)}</small></span></label>`
   ).join('');
-
-  // próximos dias abertos (pula segunda e dias fechados)
-  const selDia = form.querySelector('[data-dia]');
-  const { dia: hojeDia, min: agoraMin } = agoraSP();
-  const opcoes = [];
-  for (let i = 0; opcoes.length < 8 && i < 14; i++) {
-    const d = (hojeDia + i) % 7;
-    const h = HORARIOS[d];
-    if (!h) continue;
-    if (i === 0 && agoraMin >= minutos(h[1]) - 30) continue; // hoje já está fechando
-    const data = new Date(Date.now() + i * 864e5);
-    const rotulo = i === 0 ? 'Hoje' : i === 1 ? 'Amanhã' : DIAS[d][0].toUpperCase() + DIAS[d].slice(1);
-    const dataTxt = data.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', timeZone: 'America/Sao_Paulo' });
-    opcoes.push(`<option value="${d}" data-texto="${i < 2 ? rotulo.toLowerCase() : DIAS[d]} (${dataTxt})">${rotulo}, ${dataTxt}</option>`);
-  }
-  selDia.innerHTML = opcoes.join('');
-
-  // períodos: manhã até 12h, tarde até 18h, noite até o fechamento
-  const periodos = form.querySelectorAll('input[name="periodo"]');
-  const limites = { 'de manhã': [0, 720], 'à tarde': [720, 1080], 'à noite': [1080, 1440] };
-  function ajustarPeriodos() {
-    const d = Number(selDia.value);
-    const h = HORARIOS[d];
-    if (!h) return;
-    const ehHoje = d === hojeDia && selDia.selectedIndex === 0;
-    periodos.forEach((p) => {
-      const [ini, fim] = limites[p.value];
-      const abre = minutos(h[0]); const fecha = minutos(h[1]);
-      let ok = fecha > ini && abre < fim;
-      if (ok && ehHoje) ok = agoraMin < Math.min(fim, fecha) - 30;
-      p.disabled = !ok;
-    });
-    if ([...periodos].find((p) => p.checked)?.disabled) {
-      const livre = [...periodos].find((p) => !p.disabled);
-      if (livre) livre.checked = true;
-    }
-  }
 
   const enviar = form.querySelector('[data-enviar]');
   const enviarTexto = form.querySelector('[data-enviar-texto]');
@@ -412,30 +399,385 @@ if (form) {
   const totalTempo = form.querySelector('[data-total-tempo]');
 
   function atualizar() {
-    ajustarPeriodos();
-    const marcados = [...form.querySelectorAll('input[name="servico"]:checked')].map((c) => servicos[Number(c.value)]);
-    const preco = marcados.reduce((t, s) => t + s.preco, 0);
-    const tempo = marcados.reduce((t, s) => t + s.min, 0);
-    totalPreco.textContent = brl(preco);
-    totalTempo.textContent = tempo >= 60 ? `${Math.floor(tempo / 60)}h${tempo % 60 ? String(tempo % 60).padStart(2, '0') : ''}` : `${tempo} min`;
-
-    if (!marcados.length) {
-      enviar.setAttribute('aria-disabled', 'true');
-      enviarTexto.textContent = 'Escolha pelo menos um serviço';
-      return;
-    }
-    const periodo = [...periodos].find((p) => p.checked && !p.disabled);
-    const quando = `${selDia.selectedOptions[0]?.dataset.texto || ''}${periodo ? ', ' + periodo.value : ''}`;
-    const lista = marcados.map((s) => s.nome).join(' + ');
-    const msg = `Olá! Quero agendar: ${lista} (${brl(preco)}, ${tempo} min), ${quando}. Tem horário?`;
-    enviar.href = linkWhatsApp(msg);
-    enviar.removeAttribute('aria-disabled');
-    enviarTexto.textContent = `Agendar ${marcados.length > 1 ? marcados.length + ' serviços' : marcados[0].nome} no WhatsApp`;
+    const marcados = [...form.querySelectorAll('input[name="servico"]:checked')].map((c) => SERVICOS[Number(c.value)]);
+    totalPreco.textContent = brl(marcados.reduce((t, s) => t + s.preco, 0));
+    totalTempo.textContent = duracao(marcados.reduce((t, s) => t + s.min, 0));
+    enviar.disabled = !marcados.length;
+    enviar.dataset.agenda = marcados.map((s) => s.nome).join('|');
+    enviarTexto.textContent = marcados.length ? 'Escolher dia e horário' : 'Escolha pelo menos um serviço';
   }
   form.addEventListener('change', atualizar);
   form.addEventListener('submit', (e) => e.preventDefault());
   atualizar();
 }
+
+/* ---------- Agendamento: tela em 4 passos (serviço, profissional, data e hora, confirmar) ----------
+   Abre por cima da página em qualquer "Agendar" ([data-agenda], cartões, tabela e "Quero esse").
+   Com a API no ar o horário é salvo no banco; sem ela, o pedido segue pronto para o WhatsApp. */
+(function agenda() {
+  const dialogo = document.querySelector('[data-agenda-dialogo]');
+  // navegador sem <dialog>: os botões continuam indo direto para o WhatsApp
+  if (!dialogo || typeof dialogo.showModal !== 'function') return;
+
+  const form = dialogo.querySelector('form');
+  const corpo = dialogo.querySelector('[data-agenda-corpo]');
+  const etapas = [...dialogo.querySelectorAll('[data-etapa]')];
+  const marcas = [...dialogo.querySelectorAll('[data-etapa-marca]')];
+  const btVoltar = dialogo.querySelector('[data-agenda-voltar]');
+  const btAvancar = dialogo.querySelector('[data-agenda-avancar]');
+  const total = dialogo.querySelector('[data-agenda-total]');
+  const caixaDias = dialogo.querySelector('[data-agenda-dias]');
+  const mesNome = dialogo.querySelector('[data-mes-nome]');
+  const btMes = [...dialogo.querySelectorAll('[data-mes]')];
+  const caixaHoras = dialogo.querySelector('[data-agenda-horas]');
+  const resumo = dialogo.querySelector('[data-agenda-resumo]');
+  const erro = dialogo.querySelector('[data-agenda-erro]');
+  const animar = window.gsap && !matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const SEM_PREF = 'Sem preferência';
+  const ocupadosPorDia = {}; // cache de /api/horarios
+  let passo = 1;
+  let enviando = false;
+  let diaSel = '';    // dia escolhido (AAAA-MM-DD); fica guardado mesmo trocando de mês
+  let mesVisto = 0;   // mês mostrado no calendário (ano * 12 + mês)
+
+  // ----- passo 1: serviços (vêm da tabela de preços) -----
+  dialogo.querySelector('[data-agenda-servicos]').innerHTML = SERVICOS.map((s, i) => `
+    <label class="opcao"><input type="checkbox" name="servico" value="${i}">
+      <span class="opcao__caixa"><strong>${s.nome}</strong><small>${s.min} min · ${brl(s.preco)}</small></span></label>`).join('');
+
+  // ----- passo 2: profissionais -----
+  const sigla = (n) => n.split(' ').map((p) => p[0]).slice(0, 2).join('');
+  dialogo.querySelector('[data-agenda-profissionais]').innerHTML = [
+    ...CONFIG.profissionais.map((n) => `
+      <label class="opcao"><input type="radio" name="profissional" value="${n}">
+        <span class="opcao__caixa opcao__caixa--pessoa"><span class="opcao__sigla" aria-hidden="true">${sigla(n)}</span><strong>${n}</strong></span></label>`),
+    `<label class="opcao"><input type="radio" name="profissional" value="${SEM_PREF}">
+        <span class="opcao__caixa opcao__caixa--pessoa"><span class="opcao__sigla" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-conta"/></svg></span><strong>${SEM_PREF}</strong><small>Quem estiver livre no horário</small></span></label>`,
+  ].join('');
+
+  const marcados = () => [...form.querySelectorAll('input[name="servico"]:checked')].map((c) => SERVICOS[Number(c.value)]);
+  const duracaoTotal = () => marcados().reduce((t, s) => t + s.min, 0);
+  const valor = (nome) => form.querySelector(`input[name="${nome}"]:checked`)?.value || '';
+
+  // ----- passo 3: dias abertos e horários livres -----
+  const hojeISO = () => {
+    const p = Object.fromEntries(new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' })
+      .formatToParts(new Date()).map((x) => [x.type, x.value]));
+    return `${p.year}-${p.month}-${p.day}`;
+  };
+  const dataDe = (iso) => new Date(iso + 'T12:00:00Z');
+  const dataExtenso = (iso) => {
+    const d = dataDe(iso);
+    const dia = DIAS[d.getUTCDay()];
+    return `${dia[0].toUpperCase()}${dia.slice(1)}, ${d.getUTCDate()} de ${MESES[d.getUTCMonth()]}`;
+  };
+  const hhmm = (m) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+
+  // horários que cabem no expediente com a duração escolhida (de 30 em 30 min)
+  function horariosDoDia(iso) {
+    const h = HORARIOS[dataDe(iso).getUTCDay()];
+    if (!h) return [];
+    const dur = duracaoTotal() || 30;
+    const [abre, fecha] = h.map(minutos);
+    const limite = iso === hojeISO() ? agoraSP().min + 30 : 0;
+    const lista = [];
+    for (let t = abre; t + dur <= fecha; t += 30) if (t >= limite) lista.push(t);
+    return lista;
+  }
+
+  // calendário do mês: só dias abertos, com horário livre e até DIAS_A_FRENTE dias (igual a api/_lib.js)
+  const DIAS_A_FRENTE = 30;
+  const isoDe = (d) => d.toISOString().slice(0, 10);
+  const disponivel = (iso) => {
+    const distancia = (dataDe(iso) - dataDe(hojeISO())) / 864e5;
+    return distancia >= 0 && distancia <= DIAS_A_FRENTE && horariosDoDia(iso).length > 0;
+  };
+
+  function montarDias() {
+    // sem dia escolhido (ou o escolhido deixou de servir): marca o primeiro dia livre
+    if (!diaSel || !disponivel(diaSel)) {
+      diaSel = '';
+      const base = dataDe(hojeISO());
+      for (let i = 0; i <= DIAS_A_FRENTE && !diaSel; i++) {
+        const iso = isoDe(new Date(base.getTime() + i * 864e5));
+        if (disponivel(iso)) diaSel = iso;
+      }
+    }
+    const ref = dataDe(diaSel || hojeISO());
+    mesVisto = ref.getUTCFullYear() * 12 + ref.getUTCMonth();
+    montarCalendario();
+    montarHoras();
+  }
+
+  function montarCalendario() {
+    const ano = Math.floor(mesVisto / 12);
+    const mes = mesVisto % 12;
+    const hoje = hojeISO();
+    const total = new Date(Date.UTC(ano, mes + 1, 0)).getUTCDate();
+    mesNome.textContent = `${MESES[mes][0].toUpperCase()}${MESES[mes].slice(1)} ${ano}`;
+    let html = '<span aria-hidden="true"></span>'.repeat(new Date(Date.UTC(ano, mes, 1)).getUTCDay());
+    for (let d = 1; d <= total; d++) {
+      const iso = isoDe(new Date(Date.UTC(ano, mes, d)));
+      const ehHoje = iso === hoje;
+      html += `<label class="cal-dia${ehHoje ? ' cal-dia--hoje' : ''}"><input type="radio" name="dia" value="${iso}" aria-label="${dataExtenso(iso)}${ehHoje ? ', hoje' : ''}"${disponivel(iso) ? '' : ' disabled'}${iso === diaSel ? ' checked' : ''}><span>${d}</span></label>`;
+    }
+    caixaDias.innerHTML = html;
+    // setas: não volta antes do mês atual nem passa do último mês com data liberada
+    const h = dataDe(hoje);
+    const limite = new Date(h.getTime() + DIAS_A_FRENTE * 864e5);
+    btMes[0].disabled = mesVisto <= h.getUTCFullYear() * 12 + h.getUTCMonth();
+    btMes[1].disabled = mesVisto >= limite.getUTCFullYear() * 12 + limite.getUTCMonth();
+  }
+  btMes.forEach((b) => b.addEventListener('click', () => {
+    mesVisto += Number(b.dataset.mes);
+    montarCalendario();
+  }));
+
+  // pergunta ao servidor o que já está ocupado no dia (se a API não responder, mostra tudo livre)
+  async function buscarOcupados(iso) {
+    if (!CONFIG.api || ocupadosPorDia[iso]) return;
+    try {
+      const r = await fetch(`${CONFIG.api}/horarios?data=${iso}`, { headers: { Accept: 'application/json' } });
+      if (r.ok) ocupadosPorDia[iso] = (await r.json()).ocupados || [];
+    } catch { /* sem API: segue sem bloquear horários */ }
+  }
+
+  function livre(iso, t) {
+    const ocupados = ocupadosPorDia[iso];
+    if (!ocupados?.length) return true;
+    const fim = t + duracaoTotal();
+    const quem = valor('profissional');
+    const pessoas = quem && quem !== SEM_PREF ? [quem] : CONFIG.profissionais;
+    // livre se pelo menos uma das pessoas possíveis não tem nada sobreposto
+    return pessoas.some((p) => !ocupados.some((o) => o.profissional === p && t < minutos(o.fim) && fim > minutos(o.inicio)));
+  }
+
+  async function montarHoras(aviso = '') {
+    const iso = diaSel;
+    if (!iso) { caixaHoras.innerHTML = '<p class="etapa__dica">Nenhum dia com horário livre nas próximas semanas.</p>'; return; }
+    const escolhida = valor('hora');
+    await buscarOcupados(iso);
+    if (diaSel !== iso) return; // a pessoa trocou de dia enquanto carregava
+    const grupos = [['Manhã', 0, 720], ['Tarde', 720, 1080], ['Noite', 1080, 1440]];
+    const lista = horariosDoDia(iso);
+    if (!lista.length) { caixaHoras.innerHTML = '<p class="etapa__dica">Nenhum horário disponível nesse dia.</p>'; atualizar(); return; }
+    caixaHoras.innerHTML = (aviso ? `<p class="agenda__erro" role="alert">${escapar(aviso)}</p>` : '') + grupos.map(([nome, ini, fim]) => {
+      const itens = lista.filter((t) => t >= ini && t < fim);
+      if (!itens.length) return '';
+      return `<fieldset class="horas__grupo"><legend>${nome}</legend><div class="horas__lista">${itens.map((t) =>
+        livre(iso, t)
+          ? `<label class="hora"><input type="radio" name="hora" value="${hhmm(t)}"><span>${hhmm(t)}</span></label>`
+          : `<label class="hora" title="Horário ocupado"><input type="radio" name="hora" value="${hhmm(t)}" disabled aria-label="${hhmm(t)}, ocupado"><span>${hhmm(t)}</span></label>`
+      ).join('')}</div></fieldset>`;
+    }).join('');
+    const alvo = caixaHoras.querySelector(`input[value="${escolhida}"]:not(:disabled)`);
+    if (alvo) alvo.checked = true;
+    atualizar();
+  }
+
+  // ----- passo 4: resumo -----
+  function montarResumo() {
+    const lista = marcados();
+    const linhas = [
+      ['Serviço', lista.map((s) => s.nome).join(' + ')],
+      ['Profissional', valor('profissional')],
+      ['Data', dataExtenso(diaSel)],
+      ['Horário', valor('hora')],
+      ['Duração', duracao(duracaoTotal())],
+    ];
+    resumo.innerHTML = linhas.map(([k, v]) => `<div data-revela><dt>${k}</dt><dd>${v}</dd></div>`).join('')
+      + `<div class="resumo__total" data-revela><dt>Total</dt><dd>${brl(lista.reduce((t, s) => t + s.preco, 0))}</dd></div>`;
+  }
+
+  // telefone com máscara: (11) 91234-5678
+  const tel = form.elements.telefone;
+  tel.addEventListener('input', () => {
+    const d = tel.value.replace(/\D/g, '').slice(0, 11);
+    tel.value = d.length > 10 ? `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`
+      : d.length > 6 ? `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`
+      : d.length > 2 ? `(${d.slice(0, 2)}) ${d.slice(2)}` : d;
+  });
+
+  function valido(p) {
+    if (p === 1) return marcados().length > 0;
+    if (p === 2) return Boolean(valor('profissional'));
+    if (p === 3) return Boolean(diaSel && valor('hora'));
+    if (p === 4) return form.elements.nome.value.trim().length >= 2 && tel.value.replace(/\D/g, '').length >= 10;
+    return true;
+  }
+
+  function atualizar() {
+    const lista = marcados();
+    total.innerHTML = lista.length
+      ? `<strong>${brl(lista.reduce((t, s) => t + s.preco, 0))}</strong><span>${duracao(duracaoTotal())}${lista.length > 1 ? ` · ${lista.length} serviços` : ''}</span>`
+      : '<span>Nenhum serviço escolhido</span>';
+    btAvancar.disabled = enviando || !valido(passo);
+  }
+
+  function irPara(n) {
+    passo = n;
+    etapas.forEach((e) => { e.hidden = Number(e.dataset.etapa) !== n; });
+    marcas.forEach((m) => {
+      const i = Number(m.dataset.etapaMarca);
+      m.classList.toggle('feita', i < n);
+      m.classList.toggle('atual', i === n);
+      if (i === n) m.setAttribute('aria-current', 'step'); else m.removeAttribute('aria-current');
+    });
+    dialogo.classList.toggle('agenda--fim', n === 5);
+    btVoltar.hidden = n === 1 || n === 5;
+    btAvancar.textContent = n === 4 ? 'Confirmar agendamento' : n === 5 ? 'Fechar' : 'Continuar';
+    erro.hidden = true;
+    if (n === 3) montarDias();
+    if (n === 4) montarResumo();
+    corpo.scrollTop = 0;
+    const atual = etapas.find((e) => !e.hidden);
+    atual.querySelector('.etapa__titulo')?.focus({ preventScroll: true });
+    entrar(atual, n);
+    atualizar();
+  }
+
+  // entrada de cada passo; no "Confirmar" cada linha do resumo aparece uma de cada vez
+  function entrar(secao, n) {
+    if (!animar) return;
+    if (n === 4) {
+      const itens = [secao.querySelector('.etapa__titulo'), ...secao.querySelectorAll('[data-revela]')];
+      gsap.fromTo(itens, { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: 'power3.out', stagger: 0.12, overwrite: true });
+      gsap.fromTo(btAvancar, { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: 'power3.out', delay: itens.length * 0.12, overwrite: true });
+    } else if (n === 5) {
+      gsap.fromTo([...secao.children], { y: 20, opacity: 0, scale: 0.97 }, { y: 0, opacity: 1, scale: 1, duration: 0.7, ease: 'power3.out', stagger: 0.12, overwrite: true });
+    } else {
+      gsap.set(btAvancar, { clearProps: 'all' });
+      gsap.fromTo(secao, { x: 24, opacity: 0 }, { x: 0, opacity: 1, duration: 0.45, ease: 'power3.out', overwrite: true });
+    }
+  }
+
+  // mensagem pronta para o WhatsApp do salão
+  const mensagem = (d, salvo) => [
+    salvo ? 'Olá! Acabei de marcar pelo site:' : 'Olá! Quero agendar pelo site:',
+    `Serviço: ${d.servicos.join(' + ')}`,
+    `Profissional: ${d.profissional}`,
+    `Data: ${dataExtenso(d.data)}`,
+    `Horário: ${d.hora}`,
+    `Total: ${brl(d.total)} (${duracao(d.min)})`,
+    `Nome: ${d.nome}`,
+    `WhatsApp: ${d.telefoneTxt}`,
+  ].join('\n');
+
+  async function confirmar() {
+    const lista = marcados();
+    const dados = {
+      servicos: lista.map((s) => s.nome),
+      profissional: valor('profissional'),
+      data: diaSel,
+      hora: valor('hora'),
+      nome: form.elements.nome.value.trim(),
+      telefone: tel.value.replace(/\D/g, ''),
+      telefoneTxt: tel.value,
+      total: lista.reduce((t, s) => t + s.preco, 0),
+      min: duracaoTotal(),
+    };
+
+    let salvo = false;
+    if (CONFIG.api) {
+      enviando = true;
+      btAvancar.textContent = 'Salvando...';
+      atualizar();
+      try {
+        const r = await fetch(`${CONFIG.api}/agendamentos`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify({
+            servicos: dados.servicos, profissional: dados.profissional, data: dados.data, hora: dados.hora,
+            nome: dados.nome, telefone: dados.telefone, site: form.elements.site.value,
+          }),
+        });
+        const resposta = await r.json().catch(() => ({}));
+        if (r.ok) {
+          salvo = true;
+          if (resposta.profissional) dados.profissional = resposta.profissional;
+        } else if ([400, 409, 429].includes(r.status)) {
+          // erro que a pessoa consegue resolver: mostra e deixa corrigir
+          enviando = false;
+          const txt = resposta.erro || 'Não foi possível confirmar. Tente de novo.';
+          if (r.status === 409) {
+            delete ocupadosPorDia[dados.data]; // busca de novo o que está ocupado
+            irPara(3);
+            montarHoras(txt);
+          } else {
+            btAvancar.textContent = 'Confirmar agendamento';
+            erro.textContent = txt;
+            erro.hidden = false;
+            atualizar();
+          }
+          return;
+        }
+        // 404, 500 ou sem rede: o pedido segue pelo WhatsApp
+      } catch { /* sem conexão com a API: segue pelo WhatsApp */ }
+      enviando = false;
+    }
+
+    const titulo = dialogo.querySelector('[data-feito-titulo]');
+    const texto = dialogo.querySelector('[data-feito-texto]');
+    const wa = dialogo.querySelector('[data-feito-wa]');
+    const waTexto = dialogo.querySelector('[data-feito-wa-texto]');
+    const primeiroNome = dados.nome.split(' ')[0];
+    wa.href = linkWhatsApp(mensagem(dados, salvo));
+    wa.classList.toggle('botao--claro', !salvo);
+    wa.classList.toggle('botao--contorno', salvo);
+    if (salvo) {
+      titulo.textContent = `Horário marcado, ${primeiroNome}.`;
+      texto.textContent = `${dataExtenso(dados.data)}, às ${dados.hora}, com ${dados.profissional}. Se precisar mudar, é só chamar no WhatsApp.`;
+      waTexto.textContent = 'Avisar no WhatsApp';
+    } else {
+      titulo.textContent = `Falta só enviar, ${primeiroNome}.`;
+      texto.textContent = `${dataExtenso(dados.data)}, às ${dados.hora}. Toque no botão para mandar o pedido pronto no WhatsApp; o salão responde confirmando.`;
+      waTexto.textContent = 'Enviar no WhatsApp';
+    }
+    if (typeof window.gtag === 'function') window.gtag('event', 'agendamento', { salvo });
+    irPara(5);
+  }
+
+  // ----- abrir, navegar e fechar -----
+  function abrir(nomes, pular) {
+    form.reset();
+    diaSel = '';
+    enviando = false;
+    form.querySelectorAll('input[name="servico"]').forEach((c) => {
+      c.checked = nomes.includes(SERVICOS[Number(c.value)].nome);
+    });
+    // só um profissional: já vem marcado
+    if (CONFIG.profissionais.length === 1) form.querySelector('input[name="profissional"]').checked = true;
+    dialogo.showModal();
+    document.documentElement.classList.add('agenda-aberta');
+    irPara(pular && marcados().length ? 2 : 1);
+  }
+  const fechar = () => dialogo.close();
+
+  form.addEventListener('change', (e) => {
+    if (e.target.name === 'dia') { diaSel = e.target.value; montarHoras(); }
+    atualizar();
+  });
+  form.addEventListener('input', atualizar);
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (passo === 5) return fechar();
+    if (enviando || !valido(passo)) return;
+    if (passo === 4) confirmar(); else irPara(passo + 1);
+  });
+  btVoltar.addEventListener('click', () => irPara(Math.max(1, passo - 1)));
+  dialogo.querySelector('[data-agenda-fechar]').addEventListener('click', fechar);
+  dialogo.addEventListener('click', (e) => { if (e.target === dialogo) fechar(); }); // clique fora
+  dialogo.addEventListener('close', () => document.documentElement.classList.remove('agenda-aberta'));
+
+  // qualquer botão de agendar do site abre esta tela (com o serviço já marcado quando houver)
+  document.addEventListener('click', (e) => {
+    const gatilho = e.target.closest('[data-agenda], [data-agendar], [data-servico], [data-quero]');
+    if (!gatilho || dialogo.contains(gatilho)) return;
+    e.preventDefault();
+    const lista = gatilho.dataset.servicos || gatilho.dataset.agendar || gatilho.dataset.servico || gatilho.dataset.agenda || '';
+    abrir(lista.split('|').filter(Boolean), 'agendaPular' in gatilho.dataset);
+  });
+})();
 
 /* ---------- Mapa: carrega em segundo plano logo após a página abrir (ou antes, se a pessoa
    rolar até perto dele). Usa o endereço direto do embed, sem redirecionamento. ---------- */

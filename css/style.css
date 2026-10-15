@@ -448,35 +448,22 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .passo legend { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; padding: 0; font-weight: 600; }
 .passo legend span { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--preto); color: var(--branco); font: 600 13px/1 var(--display); }
 .chips { display: flex; flex-wrap: wrap; gap: var(--e-1); }
-.chips label, .periodos label { position: relative; }
-.chips input, .periodos input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
-.chips span, .periodos span {
+.chips label { position: relative; }
+.chips input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+.chips span {
   display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border-radius: 999px;
   background: #ECEDEE; border: 1px solid var(--linha-clara); font-size: var(--t-sm);
   transition: background-color .15s var(--sai), color .15s var(--sai), border-color .15s var(--sai);
 }
 .chips small { font-size: var(--t-xs); color: var(--texto-claro-2); }
-.chips input:checked + span, .periodos input:checked + span { background: var(--preto); border-color: var(--preto); color: var(--branco); }
+.chips input:checked + span { background: var(--preto); border-color: var(--preto); color: var(--branco); }
 .chips input:checked + span small { color: var(--prata); }
-.chips input:focus-visible + span, .periodos input:focus-visible + span { outline: 2px solid var(--preto); outline-offset: 2px; }
-.periodos input:disabled + span { opacity: .4; text-decoration: line-through; }
-.periodos input:disabled { cursor: not-allowed; }
-.simulador__linha { display: grid; grid-template-columns: 1fr 1.2fr; gap: var(--e-4); }
-.periodos { display: flex; gap: var(--e-1); }
-.periodos label { flex: 1; }
-.periodos span { width: 100%; justify-content: center; }
-.campo select {
-  width: 100%; min-height: 44px; padding: 0 40px 0 18px; border-radius: 999px;
-  font: 400 var(--t-base) var(--texto); color: var(--preto); /* 16px evita zoom no iPhone */
-  background: #ECEDEE url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23000' stroke-width='1.4'/%3E%3C/svg%3E") right 14px center no-repeat;
-  border: 1px solid var(--linha-clara); -webkit-appearance: none; appearance: none;
-}
+.chips input:focus-visible + span { outline: 2px solid var(--preto); outline-offset: 2px; }
 .simulador__total { display: grid; grid-template-columns: 1fr 1fr; border-block: 1px solid var(--linha-clara); }
 .simulador__total div { padding: var(--e-2) 0; }
 .simulador__total div + div { padding-left: var(--e-3); border-left: 1px solid var(--linha-clara); }
 .simulador__total dt { font-size: var(--t-sm); color: var(--texto-claro-2); }
 .simulador__total dd { font: 600 var(--t-xl)/1.1 var(--display); font-variant-numeric: lining-nums tabular-nums; }
-[data-enviar][aria-disabled="true"] { opacity: .5; pointer-events: none; }
 
 /* =====================================================================
    HORÁRIO E LOCAL
@@ -514,6 +501,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
    DÚVIDAS
    ===================================================================== */
 .duvidas { display: grid; grid-template-columns: minmax(260px, 480px) minmax(0, 1fr); gap: var(--e-8); padding: var(--e-12) max(var(--lateral), calc((100% - var(--largura)) / 2 + var(--lateral))); background: var(--parede); color: var(--preto); }
+.duvidas { overflow-x: clip; } /* as perguntas entram vindo da direita sem criar rolagem lateral */
 .duvidas__lista { max-width: 720px; }
 .duvidas details { border-bottom: 1px solid var(--linha-clara); }
 .duvidas summary { display: flex; justify-content: space-between; align-items: center; gap: var(--e-2); min-height: 64px; padding: var(--e-2) 0; cursor: pointer; list-style: none; font: 600 var(--t-md)/1.3 var(--texto); }
@@ -563,6 +551,175 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .barra-celular { display: none; }
 
 /* =====================================================================
+   AGENDAMENTO: tela em 4 passos (abre por cima da página)
+   Desktop: painel no centro. Celular: ocupa a tela inteira.
+   ===================================================================== */
+html.agenda-aberta, html.agenda-aberta body { overflow: hidden; }
+.agenda {
+  width: min(100% - 32px, 760px); max-width: none; height: min(100dvh - 48px, 860px); max-height: none;
+  margin: auto; padding: 0; border: 1px solid var(--linha-escura); border-radius: 6px;
+  background: var(--preto); color: var(--branco); overflow: hidden;
+}
+.agenda[open] { animation: agenda-abre .45s var(--sai); }
+.agenda::backdrop { background: rgba(0,0,0,.78); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+@keyframes agenda-abre { from { opacity: 0; transform: translateY(24px) scale(.98); } }
+.agenda__form { display: flex; flex-direction: column; height: 100%; }
+
+.agenda__topo { display: flex; align-items: center; justify-content: space-between; gap: var(--e-2); padding: 12px var(--e-3); border-bottom: 1px solid var(--linha-escura); }
+.agenda__marca { display: inline-flex; align-items: center; gap: 10px; font: 500 var(--t-md)/1 var(--display); letter-spacing: .04em; }
+.agenda__marca img { width: 28px; }
+.agenda__fechar { display: grid; place-items: center; width: 44px; height: 44px; margin-right: -10px; border-radius: 50%; color: var(--texto-escuro-2); transition: background-color .2s var(--sai), color .2s var(--sai); }
+.agenda__fechar:hover { background: rgba(185,189,195,.12); color: var(--branco); }
+.agenda__fechar svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+
+/* passos: número no círculo + nome; a linha entre eles mostra o avanço */
+.etapas { display: flex; gap: 10px; padding: var(--e-2) var(--e-3); border-bottom: 1px solid var(--linha-escura); }
+.etapas li { display: flex; flex: 1 1 0; align-items: center; gap: 8px; min-width: 0; font-size: var(--t-sm); color: var(--texto-escuro-2); white-space: nowrap; transition: color .3s var(--sai); }
+.etapas li:not(:last-child)::after { content: ""; flex: 1; min-width: 12px; height: 1px; background: var(--linha-escura); transition: background-color .4s var(--sai); }
+.etapas span {
+  display: grid; place-items: center; flex: none; width: 28px; height: 28px; border-radius: 50%;
+  border: 1px solid var(--linha-escura); font: 600 13px/1 var(--display);
+  transition: background-color .3s var(--sai), border-color .3s var(--sai), color .3s var(--sai);
+}
+.etapas .atual { color: var(--branco); }
+.etapas .atual span { border-color: var(--branco); color: var(--branco); }
+.etapas .feita { color: var(--prata); }
+.etapas .feita span { background: var(--prata); border-color: var(--prata); color: var(--preto); }
+.etapas .feita::after { background: var(--prata); }
+
+.agenda__corpo { flex: 1; min-height: 0; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; padding: var(--e-4) var(--e-3); scrollbar-color: var(--linha-escura) transparent; }
+.etapa { display: grid; gap: var(--e-2); align-content: start; }
+.etapa__titulo { font: 500 clamp(var(--t-lg), 4vw, var(--t-xl))/1.1 var(--display); letter-spacing: .02em; outline: none; }
+.etapa__dica { margin-top: -8px; font-size: var(--t-sm); color: var(--texto-escuro-2); }
+
+/* opções (serviços e profissionais): o input fica por cima, invisível, para teclado e leitor de tela */
+.opcoes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.opcao, .hora { position: relative; }
+.opcao input, .hora input { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.opcao__caixa {
+  position: relative; display: grid; gap: 4px; height: 100%; padding: 14px 48px 14px 16px;
+  border: 1px solid var(--linha-escura); border-radius: 4px; background: var(--grafite);
+  transition: border-color .2s var(--sai), background-color .2s var(--sai);
+}
+.opcao__caixa strong { font: 500 var(--t-md)/1.2 var(--display); }
+.opcao__caixa small { font-size: var(--t-sm); color: var(--texto-escuro-2); font-variant-numeric: tabular-nums; }
+/* marcador à direita: círculo vazio que vira um "check" */
+.opcao__caixa::after {
+  content: ""; position: absolute; right: 16px; top: 50%; width: 20px; height: 20px; margin-top: -10px; border-radius: 50%;
+  border: 1px solid var(--linha-escura); background: no-repeat center / 12px;
+  transition: background-color .2s var(--sai), border-color .2s var(--sai);
+}
+.opcao:hover .opcao__caixa { border-color: #55575D; }
+.opcao input:checked + .opcao__caixa { border-color: var(--branco); background: #1F2023; }
+.opcao input:checked + .opcao__caixa::after {
+  border-color: var(--branco); background-color: var(--branco);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 6.2 5 8.5l4.5-5' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+.opcao input:focus-visible + .opcao__caixa, .hora input:focus-visible + span { outline: 2px solid var(--branco); outline-offset: 2px; }
+.opcao__caixa--pessoa { grid-template-columns: auto 1fr; align-items: center; column-gap: 14px; }
+.opcao__caixa--pessoa small { grid-column: 2; }
+.opcao__sigla {
+  grid-row: span 2; display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%;
+  border: 1px solid var(--prata); font: 500 var(--t-base)/1 var(--display); letter-spacing: .04em; color: var(--prata);
+}
+.opcao__sigla svg { width: 24px; height: 24px; }
+
+/* calendário do mês */
+.calendario { display: grid; gap: 6px; padding: var(--e-2); border: 1px solid var(--linha-escura); border-radius: 4px; background: var(--grafite); }
+.calendario__topo { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.calendario__mes { font: 500 var(--t-md)/1 var(--display); letter-spacing: .02em; }
+.calendario__seta { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; color: var(--branco); transition: background-color .2s var(--sai); }
+.calendario__seta:hover:not(:disabled) { background: rgba(185,189,195,.12); }
+.calendario__seta:disabled { opacity: .25; cursor: default; }
+.calendario__seta svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.calendario__semana, .calendario__dias { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; }
+.calendario__semana span { padding-block: 6px; font-size: var(--t-xs); font-weight: 600; color: var(--texto-escuro-2); }
+.calendario__dias { row-gap: 4px; }
+.cal-dia { position: relative; display: grid; place-items: center; }
+.cal-dia input { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.cal-dia span {
+  position: relative; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%;
+  font-weight: 600; font-size: var(--t-sm); font-variant-numeric: tabular-nums;
+  transition: background-color .2s var(--sai), color .2s var(--sai);
+}
+.cal-dia:hover input:not(:disabled) + span { background: rgba(185,189,195,.14); }
+.cal-dia input:disabled { cursor: default; }
+.cal-dia input:disabled + span { color: #4A4C52; font-weight: 400; }
+/* hoje: pontinho embaixo do número */
+.cal-dia--hoje span::after { content: ""; position: absolute; bottom: 5px; width: 4px; height: 4px; border-radius: 50%; background: currentColor; }
+.cal-dia input:checked + span { background: var(--branco); color: var(--preto); }
+.cal-dia input:focus-visible + span { outline: 2px solid var(--branco); outline-offset: 2px; }
+
+.horas { display: grid; gap: var(--e-2); }
+.horas__grupo { margin: 0; padding: 0; border: 0; min-width: 0; }
+.horas__grupo legend { margin-bottom: 8px; padding: 0; font-size: var(--t-xs); font-weight: 600; letter-spacing: .08em; color: var(--texto-escuro-2); }
+.horas__lista { display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: 8px; }
+.hora span {
+  display: grid; place-items: center; min-height: 44px; border: 1px solid var(--linha-escura); border-radius: 999px;
+  font-weight: 600; font-size: var(--t-sm); font-variant-numeric: tabular-nums;
+  transition: background-color .2s var(--sai), border-color .2s var(--sai), color .2s var(--sai);
+}
+.hora:hover span { border-color: #55575D; }
+.hora input:checked + span { background: var(--branco); border-color: var(--branco); color: var(--preto); }
+.hora input:disabled { cursor: not-allowed; }
+.hora span { position: relative; }
+/* horário já marcado por alguém: fica apagado com um traço atravessando */
+.hora input:disabled + span { color: #6E7177; border-color: #222326; border-style: dashed; }
+.hora input:disabled + span::after {
+  content: ""; position: absolute; left: 22%; right: 22%; top: 50%; height: 1.5px; margin-top: -.75px;
+  background: var(--prata); transform: rotate(-8deg);
+}
+
+/* resumo do passo 4 */
+.resumo { display: grid; margin-bottom: var(--e-1); }
+.resumo div { display: flex; justify-content: space-between; align-items: baseline; gap: var(--e-2); padding: 14px 0; border-bottom: 1px solid var(--linha-escura); }
+.resumo dt { color: var(--texto-escuro-2); }
+.resumo dd { text-align: right; }
+.resumo .resumo__total { border-bottom: 0; padding-top: var(--e-2); }
+.resumo .resumo__total dt { color: var(--branco); font-weight: 600; }
+.resumo .resumo__total dd { font: 600 var(--t-xl)/1 var(--display); font-variant-numeric: lining-nums tabular-nums; }
+.entrada { display: grid; gap: 6px; font-size: var(--t-sm); color: var(--texto-escuro-2); }
+.entrada input {
+  width: 100%; min-height: 52px; padding: 0 16px; border: 1px solid var(--linha-escura); border-radius: 4px;
+  background: var(--grafite); color: var(--branco); font: 500 16px/1 var(--texto); /* 16px: o iPhone não dá zoom */
+  transition: border-color .2s var(--sai);
+}
+.entrada input::placeholder { color: #6E7177; }
+.entrada input:focus { outline: none; border-color: var(--branco); }
+.agenda__isca { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.agenda__erro { padding: 12px 14px; border-left: 2px solid var(--branco); background: var(--grafite); font-size: var(--t-sm); }
+
+/* passo final */
+.agenda__feito { justify-items: center; text-align: center; padding-block: var(--e-6); }
+.agenda__feito img { width: 64px; }
+.agenda__feito p { max-width: 42ch; color: var(--texto-escuro-2); }
+.agenda__feito .botao { margin-top: var(--e-1); }
+
+/* rodapé fixo da tela: total + voltar + continuar */
+.agenda__rodape { display: flex; align-items: center; gap: 10px; padding: 12px var(--e-3) calc(12px + env(safe-area-inset-bottom)); border-top: 1px solid var(--linha-escura); background: var(--preto); }
+.agenda__total { display: grid; gap: 2px; flex: 1; min-width: 0; }
+.agenda__total strong { font: 600 var(--t-md)/1 var(--display); font-variant-numeric: lining-nums tabular-nums; }
+.agenda__total span { font-size: var(--t-xs); color: var(--texto-escuro-2); }
+.agenda__rodape .botao { min-height: 48px; padding-inline: var(--e-3); }
+.agenda__rodape .botao--contorno { color: var(--prata); }
+.agenda--fim .agenda__total { visibility: hidden; }
+.botao:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+.botao--claro:disabled:hover { background: var(--branco); }
+
+@media (max-width: 640px) {
+  .agenda { width: 100%; height: 100dvh; max-height: 100dvh; border: 0; border-radius: 0; }
+  .agenda[open] { animation-name: agenda-sobe; }
+  @keyframes agenda-sobe { from { transform: translateY(40px); opacity: 0; } }
+  .agenda__topo, .etapas, .agenda__corpo, .agenda__rodape { padding-inline: var(--lateral); }
+  .calendario { padding: 12px 8px; }
+  /* passos em 2 x 2, como no celular cabe melhor */
+  .etapas { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; }
+  .opcoes { grid-template-columns: minmax(0, 1fr); }
+  .agenda__rodape .botao--claro { flex: 1 1 auto; }
+  .agenda__total { flex: 0 1 auto; }
+}
+
+/* =====================================================================
    UMA SEÇÃO = UMA TELA (desktop com altura suficiente)
    ===================================================================== */
 @media (min-width: 960px) and (min-height: 620px) {
@@ -589,7 +746,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   .simulador { align-content: center; padding-block: var(--e-6); gap: var(--e-3); }
   .horario { align-content: center; align-items: center; padding-block: var(--e-6); }
   .duvidas { align-content: center; align-items: center; padding-block: var(--e-6); }
-  .chips span, .periodos span { min-height: 40px; }
+  .chips span { min-height: 40px; }
   .simulador__total div { padding-block: 12px; }
 }
 
@@ -706,7 +863,6 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   .fatos__lista li + li { border-left: 0; border-top: 1px solid var(--linha-escura); }
   .quadro__grupos { grid-template-columns: 1fr; gap: var(--e-4); }
   .quadro__placa { box-shadow: none; }
-  .simulador__linha { grid-template-columns: 1fr; }
   .rodape { grid-template-columns: 1fr; }
 }
 

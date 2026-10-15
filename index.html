@@ -94,7 +94,7 @@
     "@context": "https://schema.org",
     "@type": "FAQPage",
     "mainEntity": [
-      { "@type": "Question", "name": "Precisa agendar?", "acceptedAnswer": { "@type": "Answer", "text": "O melhor caminho é agendar pelo WhatsApp (11) 94504-6553. Você escolhe o serviço, o dia e o período e a gente confirma o horário por lá." } },
+      { "@type": "Question", "name": "Precisa agendar?", "acceptedAnswer": { "@type": "Answer", "text": "É o melhor caminho. Toque em Agendar horário, escolha o serviço, o profissional, o dia e a hora. Se preferir, chame no WhatsApp (11) 94504-6553." } },
       { "@type": "Question", "name": "Atende cabelo feminino?", "acceptedAnswer": { "@type": "Answer", "text": "Sim. O Império Dantas é um salão de beleza unissex: corte, química, limpeza de pele e penteados para todos." } },
       { "@type": "Question", "name": "Quanto tempo leva a progressiva?", "acceptedAnswer": { "@type": "Answer", "text": "Cerca de 40 minutos. A progressiva custa R$ 85." } },
       { "@type": "Question", "name": "O que é o nevou?", "acceptedAnswer": { "@type": "Answer", "text": "É a descoloração do cabelo até o platinado, quase branco. Leva cerca de 60 minutos e custa R$ 130." } },
@@ -143,7 +143,7 @@
         <svg aria-hidden="true" viewBox="0 0 24 24"><use href="#i-conta"/></svg>
       </a>
     </div>
-    <a class="botao botao--claro nav__cta" href="https://wa.me/5511945046553" data-wa="Olá! Vim pelo site e quero agendar um horário." data-evento="whatsapp-menu" target="_blank" rel="noopener">Agendar horário</a>
+    <a class="botao botao--claro nav__cta" href="https://wa.me/5511945046553" data-wa="Olá! Vim pelo site e quero agendar um horário." data-agenda data-evento="agenda-menu" target="_blank" rel="noopener">Agendar horário</a>
     <button class="nav__menu" type="button" aria-expanded="false" aria-controls="menu" aria-label="Abrir menu" data-menu><span></span><span></span></button>
   </header>
 
@@ -160,11 +160,9 @@
           <span class="hero__seo">Salão unissex e barbearia na Vila Silviania, Carapicuíba</span>
           <span class="hero__grande"><span>Corte na régua,</span> <span>química sem susto.</span></span>
         </h1>
-        <p class="hero__sub">Degradê, navalhado, luzes, nevou e progressiva no mesmo lugar. Você vê o preço e o tempo de cada serviço aqui e agenda direto no WhatsApp.</p>
+        <p class="hero__sub">Degradê, navalhado, luzes, nevou e progressiva no mesmo lugar. Você vê o preço e o tempo de cada serviço e marca o seu horário aqui mesmo.</p>
         <div class="hero__acoes">
-          <a class="botao botao--claro" href="https://wa.me/5511945046553" data-wa="Olá! Vim pelo site e quero agendar um horário." data-evento="whatsapp-hero" target="_blank" rel="noopener">
-            <svg class="icone-wa" aria-hidden="true"><use href="#i-whatsapp"/></svg>Agendar pelo WhatsApp
-          </a>
+          <a class="botao botao--claro" href="https://wa.me/5511945046553" data-wa="Olá! Vim pelo site e quero agendar um horário." data-agenda data-evento="agenda-hero" target="_blank" rel="noopener">Agendar horário</a>
           <a class="botao botao--contorno" href="#precos">Ver preços</a>
         </div>
         <dl class="hero__fatos">
@@ -307,7 +305,7 @@
     <section class="trabalhos" id="trabalhos">
       <div class="trabalhos__topo">
         <h2 class="titulo titulo--claro">Trabalhos da casa</h2>
-        <p>Tudo fotografado aqui dentro, sem banco de imagem. Viu um que é a sua cara? Toque em “Quero esse” e monte sua visita com ele já escolhido.</p>
+        <p>Tudo fotografado aqui dentro, sem banco de imagem. Viu um que é a sua cara? Toque em “Quero esse” e agende com ele já escolhido.</p>
       </div>
       <!-- CONFIRMAR COM O CLIENTE: legendas de cada foto -->
       <ul class="galeria">
@@ -335,36 +333,21 @@
 
       <form class="simulador" data-simulador novalidate>
         <h2 class="titulo">Monte sua visita</h2>
-        <p class="simulador__intro">Escolha um ou mais serviços. O total aparece na hora e a mensagem vai pronta para o WhatsApp.</p>
+        <p class="simulador__intro">Escolha um ou mais serviços e veja o total. Depois é só escolher profissional, dia e horário.</p>
 
         <fieldset class="passo">
-          <legend><span>1</span>Serviços</legend>
+          <legend class="sr">Serviços</legend>
           <div class="chips" data-chips><!-- preenchido pelo JS a partir da tabela de preços --></div>
         </fieldset>
-
-        <div class="simulador__linha">
-          <fieldset class="passo">
-            <legend><span>2</span>Dia</legend>
-            <label class="campo"><span class="sr">Dia da visita</span><select data-dia></select></label>
-          </fieldset>
-          <fieldset class="passo">
-            <legend><span>3</span>Período</legend>
-            <div class="periodos">
-              <label><input type="radio" name="periodo" value="de manhã" checked><span>Manhã</span></label>
-              <label><input type="radio" name="periodo" value="à tarde"><span>Tarde</span></label>
-              <label><input type="radio" name="periodo" value="à noite"><span>Noite</span></label>
-            </div>
-          </fieldset>
-        </div>
 
         <dl class="simulador__total" aria-live="polite">
           <div><dt>Total</dt><dd data-total-preco>R$ 0</dd></div>
           <div><dt>Tempo</dt><dd data-total-tempo>0 min</dd></div>
         </dl>
 
-        <a class="botao botao--escuro botao--largo" href="https://wa.me/5511945046553" data-enviar data-evento="whatsapp-simulador" target="_blank" rel="noopener" aria-disabled="true">
-          <svg class="icone-wa" aria-hidden="true"><use href="#i-whatsapp"/></svg><span data-enviar-texto>Escolha pelo menos um serviço</span>
-        </a>
+        <button type="button" class="botao botao--escuro botao--largo" data-enviar data-agenda="" data-agenda-pular data-evento="agenda-simulador" disabled>
+          <span data-enviar-texto>Escolha pelo menos um serviço</span>
+        </button>
       </form>
     </section>
 
@@ -408,7 +391,7 @@
     <section class="duvidas" id="duvidas">
       <h2 class="titulo">Antes de sentar na cadeira</h2>
       <div class="duvidas__lista">
-        <details><summary>Precisa agendar?</summary><p>O melhor caminho é agendar pelo WhatsApp (11) 94504-6553. Você escolhe o serviço, o dia e o período e a gente confirma o horário por lá.</p></details>
+        <details><summary>Precisa agendar?</summary><p>É o melhor caminho. Toque em Agendar horário, escolha o serviço, o profissional, o dia e a hora. Se preferir, chame no WhatsApp (11) 94504-6553.</p></details>
         <details><summary>Atende cabelo feminino?</summary><p>Sim. O Império Dantas é um salão de beleza unissex: corte, química, limpeza de pele e penteados para todos.</p></details>
         <details><summary>Quanto tempo leva a progressiva?</summary><p>Cerca de 40 minutos. A progressiva custa R$ 85.</p></details>
         <details><summary>O que é o nevou?</summary><p>É a descoloração do cabelo até o platinado, quase branco. Leva cerca de 60 minutos e custa R$ 130.</p></details>
@@ -445,14 +428,82 @@
   </footer>
 
   <!-- ===================== WHATSAPP: flutuante (desktop) e barra fixa (celular) ===================== -->
-  <a class="wa-flutuante" href="https://wa.me/5511945046553" data-wa="Olá! Vim pelo site e quero agendar um horário." data-evento="whatsapp-flutuante" target="_blank" rel="noopener" aria-label="Agendar pelo WhatsApp">
+  <a class="wa-flutuante" href="https://wa.me/5511945046553" data-wa="Olá! Vim pelo site e quero agendar um horário." data-evento="whatsapp-flutuante" target="_blank" rel="noopener" aria-label="Falar no WhatsApp">
     <svg aria-hidden="true"><use href="#i-whatsapp"/></svg>
-    <span class="wa-flutuante__rotulo">Agendar no WhatsApp</span>
+    <span class="wa-flutuante__rotulo">Falar no WhatsApp</span>
   </a>
   <div class="barra-celular">
-    <a class="barra-celular__wa" href="https://wa.me/5511945046553" data-wa="Olá! Vim pelo site e quero agendar um horário." data-evento="whatsapp-barra" target="_blank" rel="noopener"><svg class="icone-wa" aria-hidden="true"><use href="#i-whatsapp"/></svg>Agendar no WhatsApp</a>
+    <a class="barra-celular__wa" href="https://wa.me/5511945046553" data-wa="Olá! Vim pelo site e quero agendar um horário." data-agenda data-evento="agenda-barra" target="_blank" rel="noopener">Agendar horário</a>
     <a class="barra-celular__preco" href="#precos">Preços</a>
   </div>
+
+  <!-- ===================== AGENDAMENTO: tela em 4 passos =====================
+       Abre em qualquer "Agendar". Serviços vêm da tabela de preços; profissionais e horários do js/main.js. -->
+  <dialog class="agenda" data-agenda-dialogo aria-labelledby="agenda-titulo">
+    <form class="agenda__form" novalidate>
+      <header class="agenda__topo">
+        <p class="agenda__marca"><img src="img/site/coroa.png" alt="" width="370" height="350">Império Dantas</p>
+        <button type="button" class="agenda__fechar" data-agenda-fechar aria-label="Fechar agendamento"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+      </header>
+
+      <ol class="etapas" aria-label="Passos do agendamento">
+        <li data-etapa-marca="1"><span>1</span>Serviço</li>
+        <li data-etapa-marca="2"><span>2</span>Profissional</li>
+        <li data-etapa-marca="3"><span>3</span>Data e hora</li>
+        <li data-etapa-marca="4"><span>4</span>Confirmar</li>
+      </ol>
+
+      <div class="agenda__corpo" data-agenda-corpo>
+        <section class="etapa" data-etapa="1">
+          <h2 class="etapa__titulo" id="agenda-titulo" tabindex="-1">Agende seu horário</h2>
+          <p class="etapa__dica">Escolha um ou mais serviços.</p>
+          <div class="opcoes" data-agenda-servicos></div>
+        </section>
+
+        <section class="etapa" data-etapa="2" hidden>
+          <h2 class="etapa__titulo" tabindex="-1">Com quem?</h2>
+          <div class="opcoes" data-agenda-profissionais></div>
+        </section>
+
+        <section class="etapa" data-etapa="3" hidden>
+          <h2 class="etapa__titulo" tabindex="-1">Dia e horário</h2>
+          <div class="calendario">
+            <div class="calendario__topo">
+              <button type="button" class="calendario__seta" data-mes="-1" aria-label="Mês anterior"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+              <p class="calendario__mes" data-mes-nome aria-live="polite"></p>
+              <button type="button" class="calendario__seta" data-mes="1" aria-label="Próximo mês"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+            </div>
+            <div class="calendario__semana" aria-hidden="true"><span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span></div>
+            <div class="calendario__dias" data-agenda-dias role="radiogroup" aria-label="Dia"></div>
+          </div>
+          <div class="horas" data-agenda-horas aria-live="polite"></div>
+        </section>
+
+        <section class="etapa" data-etapa="4" hidden>
+          <h2 class="etapa__titulo" tabindex="-1">Confirme seu horário</h2>
+          <dl class="resumo" data-agenda-resumo></dl>
+          <label class="entrada" data-revela><span>Nome</span><input name="nome" autocomplete="name" maxlength="80" required></label>
+          <label class="entrada" data-revela><span>WhatsApp</span><input name="telefone" type="tel" inputmode="tel" autocomplete="tel" placeholder="(11) 90000-0000" maxlength="16" required></label>
+          <!-- isca para robôs: pessoas não veem este campo -->
+          <label class="agenda__isca" aria-hidden="true">Site<input name="site" tabindex="-1" autocomplete="off"></label>
+          <p class="agenda__erro" data-agenda-erro role="alert" hidden></p>
+        </section>
+
+        <section class="etapa agenda__feito" data-etapa="5" hidden>
+          <img src="img/site/coroa.png" alt="" width="370" height="350">
+          <h2 class="etapa__titulo" tabindex="-1" data-feito-titulo></h2>
+          <p data-feito-texto></p>
+          <a class="botao botao--claro" href="https://wa.me/5511945046553" data-feito-wa target="_blank" rel="noopener"><svg class="icone-wa" aria-hidden="true"><use href="#i-whatsapp"/></svg><span data-feito-wa-texto>Enviar no WhatsApp</span></a>
+        </section>
+      </div>
+
+      <footer class="agenda__rodape">
+        <p class="agenda__total" data-agenda-total aria-live="polite"></p>
+        <button type="button" class="botao botao--contorno" data-agenda-voltar>Voltar</button>
+        <button type="submit" class="botao botao--claro" data-agenda-avancar>Continuar</button>
+      </footer>
+    </form>
+  </dialog>
 
   <!-- Foto ampliada -->
   <dialog class="ampliada" data-ampliada aria-label="Foto ampliada">

@@ -7,3 +7,9 @@ desktop.ini
 .idea/
 # testes locais
 _teste/
+# segredos e dependências
+.env
+.env.*
+!.env.example
+node_modules/
+.vercel/

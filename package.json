@@ -1,0 +1,10 @@
+{
+  "name": "imperio-dantas",
+  "private": true,
+  "type": "module",
+  "description": "Site do Império Dantas + API de agendamento (funções /api da Vercel)",
+  "engines": { "node": ">=20" },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.0.0"
+  }
+}
