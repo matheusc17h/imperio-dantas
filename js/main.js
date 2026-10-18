@@ -26,7 +26,6 @@ const HORARIOS = {
 };
 
 const DIAS = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
-const SEMANA_CURTA = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
 const brl = (v) => 'R$ ' + v.toLocaleString('pt-BR');
 const escapar = (txt) => String(txt).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -34,6 +33,129 @@ const duracao = (t) => (t >= 60 ? `${Math.floor(t / 60)}h${t % 60 ? String(t % 6
 const minutos = (hhmm) => { const [h, m] = hhmm.split(':').map(Number); return h * 60 + m; };
 const hora = (hhmm) => hhmm.replace(':00', 'h').replace(':', 'h');
 const preenchido = (txt) => txt && !txt.includes('[');
+// telefone com máscara: (11) 91234-5678
+const mascaraTel = (valor) => {
+  const d = valor.replace(/\D/g, '').slice(0, 11);
+  return d.length > 10 ? `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`
+    : d.length > 6 ? `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`
+    : d.length > 2 ? `(${d.slice(0, 2)}) ${d.slice(2)}` : d;
+};
+
+/* ---------- Movimento: regras comuns a todo o site ----------
+   Só transform e opacity. Entrada desacelerando (power4.out, perto de cubic-bezier(.22,1,.36,1)),
+   300 a 450 ms; saída acelerando (power2.in) e mais curta. Cascata de 50 ms, no máximo 6 itens.
+   O CSS deixa tudo visível: quem esconde é o GSAP na hora de animar. Sem GSAP ou com
+   "reduzir movimento", as coisas só aparecem. */
+const REDUZIR = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const comMovimento = () => Boolean(window.gsap) && !REDUZIR;
+const ENTRA = 'power4.out';
+const SAI = 'power2.in';
+const cascata = (passo = 0.05) => (i) => Math.min(i, 5) * passo;
+
+// trava a rolagem da página (menu ou tela por cima). Conta quantas estão abertas
+let travas = 0;
+function travarRolagem(sim) {
+  travas = Math.max(0, travas + (sim ? 1 : -1));
+  document.documentElement.classList.toggle('travado', travas > 0);
+}
+
+// revela no scroll uma vez só, quando o bloco entra ~12% na tela
+function revelar(gatilho, itens) {
+  const lista = [...itens].filter(Boolean);
+  if (!comMovimento() || !window.ScrollTrigger || !gatilho || !lista.length) return;
+  gsap.registerPlugin(ScrollTrigger);
+  gsap.from(lista, {
+    y: 16, opacity: 0, duration: 0.45, ease: ENTRA, stagger: cascata(), clearProps: 'transform,opacity',
+    scrollTrigger: { trigger: gatilho, start: 'top 88%', once: true },
+  });
+}
+
+/* ---------- Telas por cima (agendamento, fila e foto ampliada) ----------
+   Celular: sobem de baixo como uma folha e fecham arrastando a alça para baixo.
+   Desktop: aparecem no centro. O fundo escurecido entra e sai em fade (CSS). */
+const ehFolha = (d) => d.classList.contains('agenda') && matchMedia('(max-width: 640px)').matches;
+function abrirModal(d) {
+  if (d.open) return;
+  d.classList.remove('fechando');
+  if (window.gsap) gsap.killTweensOf(d);
+  d.showModal();
+  travarRolagem(true);
+  document.documentElement.classList.add('modal-aberto'); // a barra fixa do celular desce
+  if (!comMovimento()) return;
+  // atenção: nunca limpar o transform de um <dialog> aberto (clearProps). O GSAP mediria de novo e,
+  // como o dialog não tem offsetParent, tiraria e recolocaria o elemento no DOM: ele sai da camada modal
+  if (ehFolha(d)) gsap.fromTo(d, { y: 0, yPercent: 100 }, { yPercent: 0, duration: 0.35, ease: ENTRA });
+  else gsap.fromTo(d, { opacity: 0, y: 16, scale: 0.98 }, { opacity: 1, y: 0, scale: 1, duration: 0.3, ease: ENTRA, clearProps: 'opacity' });
+}
+function fecharModal(d) {
+  if (!d.open || d.classList.contains('fechando')) return;
+  if (!comMovimento()) { d.close(); return; }
+  d.classList.add('fechando');
+  gsap.killTweensOf(d);
+  const fim = () => { d.close(); d.classList.remove('fechando'); gsap.set(d, { y: 0, yPercent: 0, scale: 1, clearProps: 'opacity,height' }); };
+  if (ehFolha(d)) gsap.to(d, { yPercent: 100, duration: 0.25, ease: SAI, onComplete: fim });
+  else gsap.to(d, { opacity: 0, y: 8, duration: 0.2, ease: SAI, onComplete: fim });
+}
+// troca o conteúdo de uma tela: o atual sai para um lado, o novo entra do outro e a altura acompanha
+function trocarConteudo(d, velha, mostrarNova, entrarNova, dir = 1) {
+  if (!comMovimento() || !d.open || !velha || velha.hidden) { mostrarNova(); entrarNova?.(); return; }
+  gsap.killTweensOf(velha);
+  const h0 = d.offsetHeight;
+  gsap.to(velha, {
+    x: -16 * dir, opacity: 0, duration: 0.15, ease: SAI,
+    onComplete: () => {
+      gsap.set(velha, { clearProps: 'transform,opacity' });
+      mostrarNova();
+      const h1 = d.offsetHeight;
+      // único lugar que anima altura: fica preso dentro da tela por cima, não mexe na página
+      if (Math.abs(h1 - h0) > 2) gsap.fromTo(d, { height: h0 }, { height: h1, duration: 0.3, ease: ENTRA, clearProps: 'height' });
+      entrarNova?.();
+    },
+  });
+}
+const entrarDe = (el, dir = 1) => {
+  if (comMovimento()) gsap.fromTo(el, { x: 16 * dir, opacity: 0 }, { x: 0, opacity: 1, duration: 0.3, ease: ENTRA, clearProps: 'transform,opacity' });
+};
+// celular: arrastar a alça (topo da folha) para baixo fecha
+function arrastarParaFechar(d) {
+  const alca = d.querySelector('.agenda__topo');
+  if (!alca) return;
+  let inicio = null;
+  let dy = 0;
+  let t0 = 0;
+  alca.addEventListener('pointerdown', (e) => {
+    if (!ehFolha(d) || !comMovimento() || e.target.closest('button')) return;
+    inicio = e.clientY;
+    dy = 0;
+    t0 = performance.now();
+    try { alca.setPointerCapture(e.pointerId); } catch { /* sem captura: o arraste segue enquanto o dedo estiver na alça */ }
+  });
+  alca.addEventListener('pointermove', (e) => {
+    if (inicio === null) return;
+    dy = Math.max(0, e.clientY - inicio);
+    gsap.set(d, { y: dy });
+  });
+  const soltar = () => {
+    if (inicio === null) return;
+    inicio = null;
+    const rapido = dy / Math.max(1, performance.now() - t0) > 0.6; // px por ms
+    if (dy > 110 || (rapido && dy > 30)) fecharModal(d);
+    else gsap.to(d, { y: 0, duration: 0.25, ease: ENTRA });
+  };
+  alca.addEventListener('pointerup', soltar);
+  alca.addEventListener('pointercancel', soltar);
+}
+document.querySelectorAll('dialog').forEach((d) => {
+  // prepara o transform no GSAP enquanto o dialog está fechado (ver o aviso em abrirModal)
+  if (window.gsap) gsap.set(d, { x: 0, y: 0, yPercent: 0, scale: 1 });
+  d.addEventListener('cancel', (e) => { e.preventDefault(); fecharModal(d); }); // Esc fecha com a mesma animação
+  d.addEventListener('click', (e) => { if (e.target === d) fecharModal(d); }); // toque no fundo escurecido
+  d.addEventListener('close', () => {
+    travarRolagem(false);
+    if (!document.querySelector('dialog[open]')) document.documentElement.classList.remove('modal-aberto');
+  });
+  arrastarParaFechar(d);
+});
 
 // serviços: a tabela de preços do index.html é a fonte única
 const SERVICOS = [...document.querySelectorAll('.quadro [data-servico]')].map((a) => ({
@@ -46,27 +168,15 @@ function linkWhatsApp(mensagem) {
 }
 
 document.querySelectorAll('[data-wa]').forEach((a) => { a.href = linkWhatsApp(a.dataset.wa); });
-// Cartões e tabela: mensagem com nome e preço do serviço. O clique abre a tela de agendamento;
-// este link é o caminho reserva (navegador sem suporte à tela).
-const mensagemServico = (nome) => {
-  const s = SERVICOS.find((x) => x.nome === nome);
-  return `Olá! Vim pelo site e quero agendar: ${nome}${s ? ` (${brl(s.preco)})` : ''}.`;
-};
-document.querySelectorAll('[data-agendar]').forEach((a) => { a.href = linkWhatsApp(mensagemServico(a.dataset.agendar)); });
-document.querySelectorAll('[data-servico]').forEach((a) => {
-  const { servico, preco, min } = a.dataset;
-  a.href = linkWhatsApp(mensagemServico(servico));
-  a.setAttribute('aria-label', `Agendar ${servico}, ${brl(Number(preco))}, ${min} minutos`);
+// Tabela: cada serviço abre o agendamento com ele marcado no passo 1
+document.querySelectorAll('[data-servico]').forEach((b) => {
+  const { servico, preco, min } = b.dataset;
+  b.setAttribute('aria-label', `Agendar ${servico}, ${brl(Number(preco))}, ${min} minutos`);
 });
 
-/* ---------- Tempos: a tabela de preços (data-min) é a fonte única ----------
-   Repete o tempo na própria tabela, nos cartões, no FAQ e no JSON-LD do FAQ. */
+/* ---------- Tempos: a tabela de preços (data-min) é a fonte única ---------- */
 document.querySelectorAll('.quadro [data-servico] .quadro__tempo').forEach((el) => {
   el.textContent = `${el.closest('[data-servico]').dataset.min} min`;
-});
-document.querySelectorAll('[data-tempo-de]').forEach((el) => {
-  const s = SERVICOS.find((x) => x.nome === el.dataset.tempoDe);
-  if (s) el.textContent = `${s.min} ${el.dataset.unidade || 'min'}`;
 });
 (function faqJsonLd() {
   const script = [...document.querySelectorAll('script[type="application/ld+json"]')].find((s) => s.textContent.includes('"FAQPage"'));
@@ -83,8 +193,8 @@ document.querySelectorAll('[data-tempo-de]').forEach((el) => {
   });
 })();
 // "Quero esse" (trabalhos da casa): abre o agendamento com o serviço da foto já marcado
-document.querySelectorAll('[data-quero]').forEach((a) => {
-  a.setAttribute('aria-label', `Quero esse: ${a.dataset.quero}. Abrir o agendamento com o serviço marcado`);
+document.querySelectorAll('[data-quero]').forEach((b) => {
+  b.setAttribute('aria-label', `Quero esse: ${b.dataset.quero}. Abrir o agendamento com o serviço marcado`);
 });
 
 /* ---------- Hora em São Paulo (independe do fuso de quem visita) ---------- */
@@ -98,140 +208,96 @@ function agoraSP() {
 }
 
 /* ---------- Status ao vivo (topo) e "hoje" na tabela ---------- */
-function atualizarStatus() {
-  const alvo = document.querySelector('[data-status]');
-  if (!alvo) return;
+function abertoAgora() {
   const { dia, min } = agoraSP();
   const hoje = HORARIOS[dia];
-  const aberto = hoje && min >= minutos(hoje[0]) && min < minutos(hoje[1]);
-  document.body.classList.toggle('aberto', Boolean(aberto));
-
-  if (aberto) {
-    alvo.textContent = `Aberto agora, fecha às ${hora(hoje[1])}`;
-    return;
-  }
-  // próximo horário de abertura
+  return Boolean(hoje && min >= minutos(hoje[0]) && min < minutos(hoje[1]));
+}
+// próximo horário de abertura: { quando: 'hoje' | 'amanhã' | 'terça'..., hora: '09h' }
+function proximaAbertura() {
+  const { dia, min } = agoraSP();
   for (let i = 0; i < 8; i++) {
     const d = (dia + i) % 7;
     const h = HORARIOS[d];
-    if (!h) continue;
-    if (i === 0 && min >= minutos(h[0])) continue;
-    const quando = i === 0 ? 'hoje' : i === 1 ? 'amanhã' : DIAS[d];
-    alvo.textContent = `Fechado agora, abre ${quando} às ${hora(h[0])}`;
+    if (!h || (i === 0 && min >= minutos(h[0]))) continue;
+    return { quando: i === 0 ? 'hoje' : i === 1 ? 'amanhã' : DIAS[d], hora: hora(h[0]) };
+  }
+  return null;
+}
+function atualizarStatus() {
+  const alvo = document.querySelector('[data-status]');
+  if (!alvo) return;
+  const aberto = abertoAgora();
+  document.body.classList.toggle('aberto', aberto);
+  if (aberto) {
+    alvo.textContent = `Aberto agora, fecha às ${hora(HORARIOS[agoraSP().dia][1])}`;
     return;
   }
+  const prox = proximaAbertura();
+  if (prox) alvo.textContent = `Fechado agora, abre ${prox.quando} às ${prox.hora}`;
 }
 atualizarStatus();
 setInterval(atualizarStatus, 60 * 1000);
 document.querySelector(`[data-dia-semana="${agoraSP().dia}"]`)?.classList.add('hoje');
 
-/* ---------- Pré-loader: toque, clique ou tecla pula ---------- */
+/* ---------- Abertura (1ª visita da sessão) e entrada do topo ----------
+   A abertura é CSS (~1,2s) e sai sozinha; toque ou tecla pula. O topo entra emendado na saída:
+   status, título, texto e botões em cascata curta; a foto com fade e leve escala (1.04 → 1). */
+const comIntro = !document.documentElement.classList.contains('sem-intro');
 const intro = document.querySelector('[data-intro]');
-if (intro) {
-  const fim = () => intro.classList.add('intro--fim');
-  intro.addEventListener('click', fim);
-  intro.addEventListener('animationend', (e) => { if (e.animationName === 'intro-sai') fim(); });
-  addEventListener('keydown', fim, { once: true });
-  // sai quando o HTML está pronto (não espera as imagens), depois de no mínimo 0,6s para a logo se montar.
-  // O CSS tira a tela sozinho em 1s, mesmo se o JS falhar.
-  const sair = () => setTimeout(() => intro.classList.add('intro--sai'), Math.max(0, 600 - performance.now()));
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', sair); else sair();
+const entradaTopo = (function () {
+  const itens = [...document.querySelectorAll('.hero__texto > *')];
+  const foto = document.querySelector('.hero__foto img');
+  // sem abertura e com a página já pintada, animar agora faria o topo piscar: fica como está
+  const jaPintou = (performance.getEntriesByType?.('paint') || []).some((p) => p.name === 'first-contentful-paint');
+  if (!comMovimento() || !itens.length || (!comIntro && jaPintou)) return null;
+  return gsap.timeline({ paused: true, defaults: { ease: ENTRA } })
+    .from(itens, { y: 16, opacity: 0, duration: 0.45, stagger: cascata(0.06), clearProps: 'transform,opacity' })
+    .from(foto, { opacity: 0, scale: 1.04, duration: 0.55, clearProps: 'transform,opacity' }, 0.05);
+})();
+const iniciarTopo = () => entradaTopo?.play();
+if (intro && comIntro) {
+  const pular = () => { intro.classList.add('intro--sai'); iniciarTopo(); };
+  intro.addEventListener('click', pular);
+  addEventListener('keydown', pular, { once: true });
+  // o CSS tira a abertura em 0,95s; o topo começa a entrar junto com a saída
+  setTimeout(iniciarTopo, Math.max(0, 950 - performance.now()));
+  intro.addEventListener('animationend', (e) => { if (e.animationName === 'intro-sai') intro.classList.add('intro--fim'); });
+} else {
+  intro?.remove();
+  iniciarTopo();
 }
 
 /* ---------- Menu (celular) ---------- */
 const botaoMenu = document.querySelector('[data-menu]');
 const menu = document.getElementById('menu');
 if (botaoMenu && menu) {
-  const fechar = () => {
-    menu.classList.remove('aberto');
-    botaoMenu.setAttribute('aria-expanded', 'false');
-    botaoMenu.setAttribute('aria-label', 'Abrir menu');
+  // painel desliza com fade e os itens entram em cascata (CSS); a página fica parada atrás
+  let aberto = false;
+  const definir = (sim) => {
+    if (sim === aberto) return;
+    aberto = sim;
+    menu.classList.toggle('aberto', sim);
+    botaoMenu.setAttribute('aria-expanded', String(sim));
+    botaoMenu.setAttribute('aria-label', sim ? 'Fechar menu' : 'Abrir menu');
+    travarRolagem(sim);
   };
-  botaoMenu.addEventListener('click', () => {
-    const abrir = !menu.classList.contains('aberto');
-    menu.classList.toggle('aberto', abrir);
-    botaoMenu.setAttribute('aria-expanded', String(abrir));
-    botaoMenu.setAttribute('aria-label', abrir ? 'Fechar menu' : 'Abrir menu');
-  });
+  const fechar = () => definir(false);
+  botaoMenu.addEventListener('click', () => definir(!aberto));
   menu.querySelectorAll('a').forEach((a) => a.addEventListener('click', fechar));
   addEventListener('keydown', (e) => { if (e.key === 'Escape') fechar(); });
+  matchMedia('(min-width: 960px)').addEventListener('change', (e) => { if (e.matches) fechar(); });
 }
 
-/* ---------- Carrossel de serviços (setas no desktop) ---------- */
-const trilho = document.querySelector('[data-trilho]');
-const setas = document.querySelectorAll('[data-seta]');
-if (trilho && setas.length) {
-  const passo = () => (trilho.firstElementChild?.getBoundingClientRect().width || 280) + 24;
-  setas.forEach((b) => b.addEventListener('click', () => trilho.scrollBy({ left: passo() * Number(b.dataset.seta), behavior: 'smooth' })));
-  const estado = () => {
-    setas[0].disabled = trilho.scrollLeft <= 4;
-    setas[1].disabled = trilho.scrollLeft + trilho.clientWidth >= trilho.scrollWidth - 4;
-  };
-  trilho.addEventListener('scroll', estado, { passive: true });
-  addEventListener('resize', estado);
-  estado();
-}
-
-/* ---------- Tabela de preços: a placa aparece e depois o conteúdo entra em sequência ---------- */
-const placa = document.querySelector('.quadro__placa');
-if (placa && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
-  placa.classList.add('placa--anima');
-  placa.querySelectorAll('.quadro__grupo li').forEach((li, i) => li.style.setProperty('--i', i));
-  const secao = placa.parentElement; // mede a seção: a placa começa recortada (altura visível zero)
-  const checar = () => {
-    const r = secao.getBoundingClientRect();
-    if (r.top < innerHeight * 0.8 && r.bottom > innerHeight * 0.2) {
-      placa.classList.add('placa--visivel');
-      removeEventListener('scroll', checar);
-      removeEventListener('resize', checar);
-    }
-  };
-  addEventListener('scroll', checar, { passive: true });
-  addEventListener('resize', checar);
-  checar();
-}
-
-/* ---------- Título do topo: efeito SplitText (adaptado do React Bits com GSAP) ----------
-   "Corte na régua, química sem susto." entra letra por letra logo após o pré-loader.
-   O gradiente cromado é aplicado em cada letra alinhado à linha, para continuar contínuo. */
-(function splitTitulo() {
-  const titulo = document.querySelector('.hero__grande');
-  if (!titulo || !window.gsap) return;
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
-  const linhas = [...titulo.children]; // cada <span> é uma linha
-  const original = linhas.map((l) => l.textContent).join(' ');
-  linhas.forEach((linha) => {
-    linha.setAttribute('aria-hidden', 'true');
-    linha.innerHTML = [...linha.textContent]
-      .map((ch) => (ch === ' ' ? ' ' : `<span class="letra-hero">${ch}</span>`))
-      .join('');
-  });
-  const leitor = document.createElement('span');
-  leitor.className = 'sr';
-  leitor.textContent = original; // leitores de tela leem a frase inteira
-  titulo.append(leitor);
-  titulo.classList.add('hero__grande--split');
-
-  // gradiente cromado contínuo: cada letra recebe o pedaço do gradiente da sua linha
-  const pintar = () => {
-    linhas.forEach((linha) => {
-      const largura = linha.offsetWidth;
-      linha.querySelectorAll('.letra-hero').forEach((l) => {
-        l.style.backgroundSize = `${largura}px 100%`;
-        l.style.backgroundPosition = `${-l.offsetLeft}px 0`;
-      });
-    });
-  };
-  const iniciar = () => {
-    pintar();
-    gsap.fromTo(titulo.querySelectorAll('.letra-hero'),
-      { opacity: 0, y: 40 },
-      { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out', stagger: 0.04, delay: 0.85 });
-  };
-  addEventListener('resize', pintar);
-  (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(iniciar);
-  gsap.set(titulo.querySelectorAll('.letra-hero'), { opacity: 0 }); // escondidas até a animação começar
+/* ---------- Tabela de preços: a placa aparece e o conteúdo entra em cascata curta (uma vez) ---------- */
+(function animarTabela() {
+  const placa = document.querySelector('.quadro__placa');
+  if (!placa || !comMovimento() || !window.ScrollTrigger) return;
+  gsap.registerPlugin(ScrollTrigger);
+  const itens = [...placa.querySelectorAll('.quadro__topo > *, .quadro__grupo'), placa.querySelector('.quadro__glossario')];
+  gsap.timeline({ defaults: { ease: ENTRA }, scrollTrigger: { trigger: placa, start: 'top 88%', once: true } })
+    .from(placa, { opacity: 0, duration: 0.3, clearProps: 'opacity' })
+    .from(itens, { y: 16, opacity: 0, duration: 0.45, stagger: cascata(), clearProps: 'transform,opacity' }, 0.08);
 })();
 
 /* ---------- Foto do topo: efeito "tilted card" (adaptado do React Bits com GSAP) ----------
@@ -255,7 +321,7 @@ if (placa && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
   const legGiro = gsap.quickTo(legenda, 'rotation', { duration: 0.4, ease: 'power3.out' });
   const legOpac = gsap.quickTo(legenda, 'opacity', { duration: 0.3 });
   let ultimoY = 0;
-  fig.addEventListener('mouseenter', () => { escala(ESCALA); legOpac(1); });
+  fig.addEventListener('mouseenter', () => { miolo.style.willChange = 'transform'; escala(ESCALA); legOpac(1); });
   fig.addEventListener('mousemove', (e) => {
     const r = fig.getBoundingClientRect();
     const dx = e.clientX - r.left - r.width / 2;
@@ -267,184 +333,70 @@ if (placa && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
     legGiro(-(dy - ultimoY) * 0.6);
     ultimoY = dy;
   });
-  fig.addEventListener('mouseleave', () => { rotX(0); rotY(0); escala(1); legOpac(0); legGiro(0); });
-})();
-
-/* ---------- Trabalhos da casa (GSAP + ScrollTrigger) ----------
-   1) o fundo preto abre do centro (cortinas cinza recolhem para cima e para baixo)
-   2) título e texto entram
-   3) desktop: linha 1 sobe de baixo p/ cima, da esquerda p/ direita;
-      depois a linha 2 desce de cima p/ baixo, da direita p/ esquerda
-   Avança conforme a rolagem (scrub) e volta ao subir. Sem GSAP ou com "reduzir movimento",
-   a seção aparece normal. */
-(function animarTrabalhos() {
-  const sec = document.getElementById('trabalhos');
-  if (!sec || !window.gsap || !window.ScrollTrigger) return;
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  gsap.registerPlugin(ScrollTrigger);
-
-  const cima = document.createElement('div');
-  const baixo = document.createElement('div');
-  cima.className = 'cortina cortina--cima';
-  baixo.className = 'cortina cortina--baixo';
-  sec.prepend(cima, baixo);
-
-  // quebra o texto em palavras (e letras, no título) com máscara, para ele "se escrever" aos poucos
-  const dividir = (el, letras) => {
-    const texto = el.textContent.trim();
-    el.setAttribute('aria-label', texto);
-    el.innerHTML = texto.split(/\s+/).map((palavra) => {
-      const miolo = letras
-        ? [...palavra].map((ch) => `<span class="letra">${ch}</span>`).join('')
-        : palavra;
-      return `<span class="pal" aria-hidden="true"><span class="pal__in">${miolo}</span></span>`;
-    }).join(' ');
-  };
-  const titulo = sec.querySelector('.trabalhos__topo h2');
-  const texto = sec.querySelector('.trabalhos__topo p');
-  dividir(titulo, true);
-  dividir(texto, false);
-  const letrasTitulo = titulo.querySelectorAll('.letra');
-  const palavrasTexto = texto.querySelectorAll('.pal__in');
-  const fotos = [...sec.querySelectorAll('.galeria > .foto')];
-
-  gsap.matchMedia().add({ desk: '(min-width: 960px)', mob: '(max-width: 959px)' }, (ctx) => {
-    if (!ctx.conditions.desk) {
-      // celular: a seção é mais alta que a tela; uma cortina só recolhe para baixo, revelando de cima
-      gsap.set(baixo, { display: 'none' });
-      gsap.set(cima, { height: '100%', transformOrigin: 'bottom' });
-    }
-    const topoNav = () => `top ${document.querySelector('[data-nav]')?.offsetHeight || 0}px`;
-    // 1ª parte: fundo abre e o texto se escreve enquanto a seção sobe até encostar no menu
-    const tl = gsap.timeline({
-      defaults: { ease: 'power2.out' },
-      // presa à rolagem: a animação avança e volta conforme a pessoa rola a página
-      scrollTrigger: ctx.conditions.desk
-        ? { trigger: sec, start: 'top 90%', end: topoNav, scrub: 1.2 }
-        : { trigger: sec, start: 'top 95%', end: 'top 5%', scrub: 1.2 }, // celular: só fundo e texto
-    });
-    tl.fromTo([cima, baixo], { scaleY: 1 }, { scaleY: 0, duration: 1, ease: 'power2.inOut' })
-      .from(letrasTitulo, { yPercent: 110, duration: 0.7, stagger: 0.05 }, '-=0.2')
-      .from(palavrasTexto, { yPercent: 110, opacity: 0, duration: 0.6, stagger: 0.05 }, '-=0.3');
-    if (ctx.conditions.desk) {
-      // 2ª parte (desktop): a seção fica parada na tela e as fotos entram com calma
-      // enquanto a pessoa rola, uma a uma. Só depois a página segue.
-      const linha1 = fotos.slice(0, 6);
-      const linha2 = fotos.slice(6, 12).reverse(); // da direita para a esquerda
-      // cada foto surge dentro do próprio quadro (o quadro tem overflow: hidden), como máscara
-      const miolo = (linha) => linha.flatMap((f) => [...f.children]);
-      const passo = (linha) => (i, el) => linha.indexOf(el.closest('.foto')) * 0.35;
-      const altura = (sinal) => (i, el) => sinal * el.closest('.foto').offsetHeight; // desloca a altura do quadro
-      gsap.timeline({
-        defaults: { ease: 'power2.out' },
-        scrollTrigger: { trigger: sec, start: topoNav, end: '+=170%', scrub: 1.2, pin: true, anticipatePin: 1, invalidateOnRefresh: true },
-      })
-        // fromTo (e não from): com invalidateOnRefresh, o "from" gravaria a posição escondida como final
-        .fromTo(miolo(linha1), { y: altura(1) }, { y: 0, duration: 1, stagger: passo(linha1) })
-        .fromTo(miolo(linha2), { y: altura(-1) }, { y: 0, duration: 1, stagger: passo(linha2) }, '+=0.2')
-        .to({}, { duration: 0.4 }); // respiro: tudo montado antes de soltar a seção
-    } else {
-      // celular: cada foto tem o próprio gatilho. Começa a surgir quando entra na tela e
-      // termina quando o topo dela passa um pouco da metade, acompanhando a rolagem com calma.
-      fotos.forEach((foto) => {
-        gsap.fromTo([...foto.children], { y: () => foto.offsetHeight * 0.45, opacity: 0 }, {
-          y: 0, opacity: 1, ease: 'power2.out',
-          scrollTrigger: { trigger: foto, start: 'top 100%', end: 'top 40%', scrub: 1.2, invalidateOnRefresh: true },
-        });
-      });
-    }
+  fig.addEventListener('mouseleave', () => {
+    rotX(0); rotY(0); escala(1); legOpac(0); legGiro(0);
+    setTimeout(() => { miolo.style.willChange = ''; }, 700);
   });
 })();
 
-/* ---------- Caixas que abrem (química e dúvidas): abrir e fechar deslizando ---------- */
+/* ---------- Trabalhos da casa: título, texto e fotos entram com fade e leve subida (uma vez) ---------- */
+(function animarTrabalhos() {
+  const sec = document.getElementById('trabalhos');
+  if (!sec) return;
+  revelar(sec.querySelector('.trabalhos__topo'), sec.querySelectorAll('.trabalhos__topo > *'));
+  revelar(sec.querySelector('.galeria'), sec.querySelectorAll('.galeria > .foto'));
+})();
+
+/* ---------- Caixas que abrem (química e dúvidas) ----------
+   O conteúdo aparece na hora (sem animar altura) e entra com fade e leve descida; fecha mais rápido. */
 document.querySelectorAll('.quadro__glossario, .duvidas details').forEach((det) => {
   const resumo = det.querySelector('summary');
   const caixa = document.createElement('div');
   caixa.className = 'det__conteudo';
   [...det.children].filter((c) => c !== resumo).forEach((c) => caixa.append(c));
   det.append(caixa);
-  if (!window.gsap || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  let animando = false;
+  if (!comMovimento()) return;
   resumo.addEventListener('click', (e) => {
     e.preventDefault();
-    if (animando) return;
-    animando = true;
+    gsap.killTweensOf(caixa);
     if (!det.open) {
       det.open = true;
-      gsap.fromTo(caixa, { height: 0, opacity: 0 }, {
-        height: 'auto', opacity: 1, duration: 0.5, ease: 'power3.out',
-        onComplete: () => { gsap.set(caixa, { clearProps: 'height' }); animando = false; },
-      });
+      gsap.fromTo(caixa, { opacity: 0, y: -6 }, { opacity: 1, y: 0, duration: 0.3, ease: ENTRA, clearProps: 'transform,opacity' });
       const itens = caixa.querySelectorAll('dl > div');
-      if (itens.length) gsap.from(itens, { y: 14, opacity: 0, duration: 0.45, stagger: 0.07, delay: 0.1, ease: 'power3.out' });
+      if (itens.length) gsap.from(itens, { y: 8, opacity: 0, duration: 0.3, stagger: cascata(0.04), ease: ENTRA, clearProps: 'transform,opacity' });
     } else {
       gsap.to(caixa, {
-        height: 0, opacity: 0, duration: 0.35, ease: 'power3.in',
-        onComplete: () => { det.open = false; gsap.set(caixa, { clearProps: 'all' }); animando = false; },
+        opacity: 0, y: -4, duration: 0.15, ease: SAI,
+        onComplete: () => { det.open = false; gsap.set(caixa, { clearProps: 'transform,opacity' }); },
       });
     }
   });
 });
 
-/* ---------- Dúvidas: as perguntas entram uma de cada vez, da direita para a esquerda ----------
-   Na ordem da lista, quando a seção chega na tela. Ao voltar para cima, saem e entram de novo. */
-(function animarDuvidas() {
-  const perguntas = document.querySelectorAll('.duvidas details');
-  if (!perguntas.length || !window.gsap || !window.ScrollTrigger) return;
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  gsap.registerPlugin(ScrollTrigger);
-  gsap.fromTo(perguntas, { x: 120, opacity: 0 }, {
-    x: 0, opacity: 1, duration: 0.8, ease: 'power3.out', stagger: 0.18,
-    clearProps: 'transform', // sem transform depois de pronta: não atrapalha o abrir e fechar
-    scrollTrigger: { trigger: '.duvidas__lista', start: 'top 80%', toggleActions: 'play none none reverse' },
-  });
-})();
+/* ---------- Dúvidas: título e perguntas entram em cascata curta (uma vez) ---------- */
+revelar(document.querySelector('.duvidas'), document.querySelectorAll('.duvidas > .titulo, .duvidas details'));
 
 /* ---------- Foto ampliada ---------- */
 const dialogo = document.querySelector('[data-ampliada]');
 if (dialogo && typeof dialogo.showModal === 'function') {
-  const img = dialogo.querySelector('img');
+  const img = document.createElement('img');
+  img.width = 1200;
+  img.height = 1600;
+  img.decoding = 'async';
+  dialogo.prepend(img);
   document.querySelectorAll('[data-ampliar]').forEach((b) => b.addEventListener('click', () => {
     img.src = b.dataset.ampliar;
     img.alt = b.querySelector('img').alt;
-    dialogo.showModal();
+    abrirModal(dialogo);
   }));
-  dialogo.querySelector('[data-fechar]').addEventListener('click', () => dialogo.close());
-  dialogo.addEventListener('click', (e) => { if (e.target === dialogo) dialogo.close(); });
+  dialogo.querySelector('[data-fechar]').addEventListener('click', () => fecharModal(dialogo));
 } else {
   // navegador sem <dialog>: abre a foto grande direto
   document.querySelectorAll('[data-ampliar]').forEach((b) => b.addEventListener('click', () => { location.href = b.dataset.ampliar; }));
 }
 
-/* ---------- Simulador: Monte sua visita ----------
-   Soma os serviços marcados e continua no agendamento (passo 2) com eles já escolhidos. */
-const form = document.querySelector('[data-simulador]');
-if (form) {
-  const chips = form.querySelector('[data-chips]');
-  chips.innerHTML = SERVICOS.map((s, i) =>
-    `<label><input type="checkbox" name="servico" value="${i}"><span>${s.nome} <small>${brl(s.preco)}</small></span></label>`
-  ).join('');
-
-  const enviar = form.querySelector('[data-enviar]');
-  const enviarTexto = form.querySelector('[data-enviar-texto]');
-  const totalPreco = form.querySelector('[data-total-preco]');
-  const totalTempo = form.querySelector('[data-total-tempo]');
-
-  function atualizar() {
-    const marcados = [...form.querySelectorAll('input[name="servico"]:checked')].map((c) => SERVICOS[Number(c.value)]);
-    totalPreco.textContent = brl(marcados.reduce((t, s) => t + s.preco, 0));
-    totalTempo.textContent = duracao(marcados.reduce((t, s) => t + s.min, 0));
-    enviar.disabled = !marcados.length;
-    enviar.dataset.agenda = marcados.map((s) => s.nome).join('|');
-    enviarTexto.textContent = marcados.length ? 'Escolher dia e horário' : 'Escolha pelo menos um serviço';
-  }
-  form.addEventListener('change', atualizar);
-  form.addEventListener('submit', (e) => e.preventDefault());
-  atualizar();
-}
-
 /* ---------- Agendamento: tela em 4 passos (serviço, profissional, data e hora, confirmar) ----------
-   Abre por cima da página em qualquer "Agendar" ([data-agenda], cartões, tabela e "Quero esse").
+   Abre por cima da página em qualquer "Agendar" ([data-agenda], tabela e "Quero esse").
    Com a API no ar o horário é salvo no banco; sem ela, o pedido segue pronto para o WhatsApp. */
 (function agenda() {
   const dialogo = document.querySelector('[data-agenda-dialogo]');
@@ -621,14 +573,8 @@ if (form) {
       + `<div class="resumo__total" data-revela><dt>Total</dt><dd>${brl(lista.reduce((t, s) => t + s.preco, 0))}</dd></div>`;
   }
 
-  // telefone com máscara: (11) 91234-5678
   const tel = form.elements.telefone;
-  tel.addEventListener('input', () => {
-    const d = tel.value.replace(/\D/g, '').slice(0, 11);
-    tel.value = d.length > 10 ? `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`
-      : d.length > 6 ? `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`
-      : d.length > 2 ? `(${d.slice(0, 2)}) ${d.slice(2)}` : d;
-  });
+  tel.addEventListener('input', () => { tel.value = mascaraTel(tel.value); });
 
   function valido(p) {
     if (p === 1) return marcados().length > 0;
@@ -638,17 +584,41 @@ if (form) {
     return true;
   }
 
+  // total e tempo somam com uma contagem curta (0,3s) em vez de trocar de uma vez
+  const conta = { preco: 0, min: 0 };
+  const pintarConta = () => {
+    total.querySelector('strong').textContent = brl(Math.round(conta.preco));
+    total.querySelector('[data-t-min]').textContent = duracao(Math.round(conta.min));
+  };
   function atualizar() {
     const lista = marcados();
-    total.innerHTML = lista.length
-      ? `<strong>${brl(lista.reduce((t, s) => t + s.preco, 0))}</strong><span>${duracao(duracaoTotal())}${lista.length > 1 ? ` · ${lista.length} serviços` : ''}</span>`
-      : '<span>Nenhum serviço escolhido</span>';
+    const preco = lista.reduce((t, s) => t + s.preco, 0);
+    const min = duracaoTotal();
+    if (!lista.length) {
+      if (window.gsap) gsap.killTweensOf(conta);
+      conta.preco = 0;
+      conta.min = 0;
+      total.innerHTML = '<span>Nenhum serviço escolhido</span>';
+    } else {
+      if (!total.querySelector('strong')) total.innerHTML = '<strong></strong><span><span data-t-min></span><span data-t-qtd></span></span>';
+      total.querySelector('[data-t-qtd]').textContent = lista.length > 1 ? ` · ${lista.length} serviços` : '';
+      if (animar && dialogo.open && (conta.preco !== preco || conta.min !== min)) {
+        gsap.to(conta, { preco, min, duration: 0.3, ease: 'power2.out', overwrite: true, onUpdate: pintarConta });
+      } else {
+        conta.preco = preco;
+        conta.min = min;
+      }
+      pintarConta();
+    }
     btAvancar.disabled = enviando || !valido(passo);
   }
 
-  function irPara(n) {
+  // troca de passo: o atual sai para a esquerda e o próximo entra da direita (o inverso no Voltar)
+  function irPara(n, semTransicao = false) {
+    const dir = n >= passo ? 1 : -1;
+    const velha = etapas.find((e) => !e.hidden);
+    const nova = etapas.find((e) => Number(e.dataset.etapa) === n);
     passo = n;
-    etapas.forEach((e) => { e.hidden = Number(e.dataset.etapa) !== n; });
     marcas.forEach((m) => {
       const i = Number(m.dataset.etapaMarca);
       m.classList.toggle('feita', i < n);
@@ -661,25 +631,31 @@ if (form) {
     erro.hidden = true;
     if (n === 3) montarDias();
     if (n === 4) montarResumo();
-    corpo.scrollTop = 0;
-    const atual = etapas.find((e) => !e.hidden);
-    atual.querySelector('.etapa__titulo')?.focus({ preventScroll: true });
-    entrar(atual, n);
+    const mostrar = () => {
+      etapas.forEach((e) => { e.hidden = e !== nova; });
+      corpo.scrollTop = 0;
+      nova.querySelector('.etapa__titulo')?.focus({ preventScroll: true });
+    };
+    if (semTransicao) mostrar(); // ao abrir, quem anima é a tela inteira
+    else trocarConteudo(dialogo, velha, mostrar, () => entrar(nova, n, dir), dir);
     atualizar();
   }
 
-  // entrada de cada passo; no "Confirmar" cada linha do resumo aparece uma de cada vez
-  function entrar(secao, n) {
+  // entrada de cada passo. "Confirmar": as linhas do resumo em cascata curta.
+  // Fim: o check se desenha e só depois entram título, texto e botão.
+  function entrar(secao, n, dir) {
     if (!animar) return;
     if (n === 4) {
-      const itens = [secao.querySelector('.etapa__titulo'), ...secao.querySelectorAll('[data-revela]')];
-      gsap.fromTo(itens, { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: 'power3.out', stagger: 0.12, overwrite: true });
-      gsap.fromTo(btAvancar, { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: 'power3.out', delay: itens.length * 0.12, overwrite: true });
+      entrarDe(secao, dir);
+      gsap.from(secao.querySelectorAll('[data-revela]'), { y: 12, opacity: 0, duration: 0.35, ease: ENTRA, stagger: cascata(), delay: 0.05, clearProps: 'transform,opacity' });
     } else if (n === 5) {
-      gsap.fromTo([...secao.children], { y: 20, opacity: 0, scale: 0.97 }, { y: 0, opacity: 1, scale: 1, duration: 0.7, ease: 'power3.out', stagger: 0.12, overwrite: true });
+      const check = secao.querySelector('.feito__check');
+      gsap.timeline({ defaults: { ease: ENTRA } })
+        .fromTo(check.querySelector('circle'), { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 0.35, ease: 'power2.out' })
+        .fromTo(check.querySelector('path'), { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 0.25, ease: 'power2.out' }, '-=0.05')
+        .from([...secao.children].filter((c) => c !== check), { y: 12, opacity: 0, duration: 0.35, stagger: cascata(), clearProps: 'transform,opacity' }, '-=0.05');
     } else {
-      gsap.set(btAvancar, { clearProps: 'all' });
-      gsap.fromTo(secao, { x: 24, opacity: 0 }, { x: 0, opacity: 1, duration: 0.45, ease: 'power3.out', overwrite: true });
+      entrarDe(secao, dir);
     }
   }
 
@@ -779,11 +755,11 @@ if (form) {
     });
     // só um profissional: já vem marcado
     if (CONFIG.profissionais.length === 1) form.querySelector('input[name="profissional"]').checked = true;
-    dialogo.showModal();
-    document.documentElement.classList.add('agenda-aberta');
-    irPara(pular && marcados().length ? 2 : 1);
+    passo = 0;
+    abrirModal(dialogo);
+    irPara(pular && marcados().length ? 2 : 1, true);
   }
-  const fechar = () => dialogo.close();
+  const fechar = () => fecharModal(dialogo);
 
   form.addEventListener('change', (e) => {
     if (e.target.name === 'dia') { diaSel = e.target.value; montarHoras(); }
@@ -798,8 +774,6 @@ if (form) {
   });
   btVoltar.addEventListener('click', () => irPara(Math.max(1, passo - 1)));
   dialogo.querySelector('[data-agenda-fechar]').addEventListener('click', fechar);
-  dialogo.addEventListener('click', (e) => { if (e.target === dialogo) fechar(); }); // clique fora
-  dialogo.addEventListener('close', () => document.documentElement.classList.remove('agenda-aberta'));
 
   // qualquer botão de agendar do site abre esta tela (com o serviço já marcado quando houver)
   document.addEventListener('click', (e) => {
@@ -809,6 +783,248 @@ if (form) {
     const lista = gatilho.dataset.servicos || gatilho.dataset.agendar || gatilho.dataset.servico || gatilho.dataset.agenda || '';
     abrir(lista.split('|').filter(Boolean), 'agendaPular' in gatilho.dataset);
   });
+})();
+
+/* ---------- Fila: atendimento por ordem de chegada ----------
+   Só a interface: os dados vêm de js/api.js (hoje simulados). Neste aparelho fica guardado
+   apenas o ID do ticket, para a pessoa ver a posição se fechar e abrir o site de novo. */
+(function fila() {
+  const botao = document.querySelector('[data-fila-abrir]');
+  const info = document.querySelector('[data-fila-info]');
+  const dialogo = document.querySelector('[data-fila-dialogo]');
+  if (!botao || !info || !dialogo || !window.api) return;
+  // navegador sem <dialog>: sem fila pelo site (o agendamento continua)
+  if (typeof dialogo.showModal !== 'function') { botao.hidden = true; return; }
+
+  const form = dialogo.querySelector('form');
+  const telas = [...dialogo.querySelectorAll('[data-fila-tela]')];
+  const acoes = [...dialogo.querySelectorAll('[data-fila-acoes]')];
+  const erro = dialogo.querySelector('[data-fila-erro]');
+  const agora = dialogo.querySelector('[data-fila-agora]');
+  const btEntrar = dialogo.querySelector('[data-fila-entrar]');
+  const tel = form.elements.whatsapp;
+  const CHAVE = 'id-fila-ticket';
+  const MIN_PADRAO = 30;            // serviço não informado
+  const ATUALIZA = 15 * 1000;       // depois vira tempo real com o servidor
+
+  const lerTicket = () => { try { return localStorage.getItem(CHAVE); } catch { return null; } };
+  const gravarTicket = (id) => {
+    try { if (id) localStorage.setItem(CHAVE, id); else localStorage.removeItem(CHAVE); } catch { /* sem localStorage: vale só nesta aba */ }
+  };
+  let ticketId = lerTicket();
+  let lista = [];
+  let meu = null;
+  let tela = 'entrar';
+  let avisouProximo = false;
+
+  const tempoDe = (servico) => SERVICOS.find((s) => s.nome === servico)?.min || MIN_PADRAO;
+  const esperaDe = (pessoas) => pessoas.reduce((t, p) => t + tempoDe(p.servico), 0);
+  const resumo = () => {
+    const n = lista.length;
+    const quantos = n === 0 ? 'Ninguém na fila agora' : n === 1 ? '1 pessoa na fila agora' : `${n} pessoas na fila agora`;
+    return `<strong>${quantos}</strong> · ${n ? `espera estimada: ~${duracao(esperaDe(lista))}` : 'sem espera'}`;
+  };
+  const avisar = (txt) => { erro.textContent = txt; erro.hidden = false; };
+
+  form.elements.servico.insertAdjacentHTML('beforeend',
+    SERVICOS.map((s) => `<option value="${s.nome}">${s.nome} (${s.min} min)</option>`).join(''));
+  tel.addEventListener('input', () => { tel.value = mascaraTel(tel.value); });
+
+  // ----- botão e indicador do topo -----
+  let carregado = false;
+  function pintarTopo() {
+    const aberta = abertoAgora();
+    if (meu) {
+      botao.disabled = false;
+      botao.textContent = `Ver minha posição (${meu.posicao}º)`;
+    } else if (aberta) {
+      botao.disabled = false;
+      botao.textContent = 'Entrar na fila';
+    } else {
+      botao.disabled = true;
+      botao.textContent = `Fila abre às ${proximaAbertura()?.hora || '09h'}`;
+    }
+    // a linha existe sempre (aberta ou fechada): nada no topo pula quando os dados chegam
+    info.classList.toggle('fila-ao-vivo--fechada', !aberta);
+    info.querySelector('[data-fila-texto]').innerHTML = !aberta ? 'Fila fechada agora'
+      : carregado ? resumo() : 'Consultando a fila…';
+    agora.innerHTML = resumo();
+  }
+
+  // ----- tela "Você está na fila" -----
+  function pintarTicket() {
+    const frente = lista.filter((p) => p.posicao < meu.posicao);
+    const proximo = meu.posicao === 1;
+    const visivel = comMovimento() && dialogo.open && tela === 'ticket';
+    // posição: o número antigo sobe e some, o novo sobe de baixo
+    const pos = dialogo.querySelector('[data-fila-posicao]');
+    const novaPos = `${meu.posicao}º`;
+    if (visivel && pos.textContent && pos.textContent !== novaPos) {
+      gsap.timeline()
+        .to(pos, { yPercent: -40, opacity: 0, duration: 0.15, ease: SAI, onComplete: () => { pos.textContent = novaPos; } })
+        .fromTo(pos, { yPercent: 40, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 0.3, ease: ENTRA, clearProps: 'transform,opacity' });
+    } else {
+      pos.textContent = novaPos;
+    }
+    // virou o próximo: o aviso aparece e pulsa 2 vezes
+    const aviso = dialogo.querySelector('[data-fila-proximo]');
+    const apareceu = proximo && aviso.hidden;
+    aviso.hidden = !proximo;
+    if (apareceu && visivel) {
+      gsap.timeline()
+        .from(aviso, { y: 8, opacity: 0, duration: 0.3, ease: ENTRA, clearProps: 'opacity' })
+        .to(aviso, { scale: 1.03, duration: 0.25, ease: 'power1.inOut', yoyo: true, repeat: 3, clearProps: 'transform' });
+    }
+    dialogo.querySelector('[data-fila-espera]').innerHTML = proximo
+      ? 'Assim que a cadeira liberar, é a sua vez.'
+      : `Espera estimada: <strong>~${duracao(esperaDe(frente))}</strong> · ${frente.length} ${frente.length === 1 ? 'pessoa' : 'pessoas'} na sua frente`;
+    // lista: quem continua na fila desliza para o novo lugar (FLIP); quem chegou aparece em fade
+    const caixaLista = dialogo.querySelector('[data-fila-lista]');
+    const antes = new Map(visivel ? [...caixaLista.children].map((li) => [li.dataset.id, li.getBoundingClientRect().top]) : []);
+    caixaLista.innerHTML = lista.map((p) => {
+      const voce = p.ticketId === ticketId;
+      return `<li class="fila__item${voce ? ' fila__item--voce' : ''}" data-id="${escapar(p.ticketId)}"${voce ? ' aria-current="true"' : ''}>`
+        + `<span class="fila__num">${p.posicao}º</span><span class="fila__nome">${voce ? 'Você' : escapar(p.nomeExibicao)}</span>`
+        + `<span class="fila__servico">${p.servico ? escapar(p.servico) : ''}</span></li>`;
+    }).join('');
+    if (visivel && antes.size) {
+      [...caixaLista.children].forEach((li) => {
+        const topo = antes.get(li.dataset.id);
+        if (topo === undefined) gsap.from(li, { opacity: 0, y: 8, duration: 0.3, ease: ENTRA, clearProps: 'transform,opacity' });
+        else if (Math.abs(topo - li.getBoundingClientRect().top) > 1) {
+          gsap.fromTo(li, { y: topo - li.getBoundingClientRect().top }, { y: 0, duration: 0.35, ease: ENTRA, clearProps: 'transform' });
+        }
+      });
+    }
+    // chegou a vez: vibra o celular uma vez (se o navegador deixar)
+    if (proximo && !avisouProximo) { avisouProximo = true; navigator.vibrate?.([200, 100, 200]); }
+    if (!proximo) avisouProximo = false;
+  }
+
+  // troca de tela (entrar <-> posição) com a mesma transição dos passos do agendamento
+  function mostrar(nome, modo = nome) {
+    const velha = telas.find((t) => !t.hidden);
+    const nova = telas.find((t) => t.dataset.filaTela === nome);
+    const trocar = () => {
+      telas.forEach((t) => { t.hidden = t !== nova; });
+      acoes.forEach((a) => { a.hidden = a.dataset.filaAcoes !== modo; });
+    };
+    tela = nome;
+    if (velha === nova) { trocar(); return; }
+    const dir = nome === 'ticket' ? 1 : -1;
+    trocarConteudo(dialogo, velha, trocar, () => {
+      entrarDe(nova, dir);
+      nova.querySelector('.etapa__titulo')?.focus({ preventScroll: true });
+    }, dir);
+  }
+
+  async function carregar() {
+    try {
+      [lista, meu] = await Promise.all([api.getQueue(), ticketId ? api.getMyTicket(ticketId) : null]);
+    } catch { return; } // sem resposta: mantém o que está na tela e tenta no próximo ciclo
+    carregado = true;
+    if (ticketId && !meu) {
+      // o ticket não existe mais (a vez passou ou saiu por outro aparelho)
+      ticketId = null;
+      gravarTicket(null);
+      if (dialogo.open && tela === 'ticket') {
+        mostrar('entrar');
+        avisar('O seu lugar na fila foi encerrado. Se ainda quiser ser atendido, entre de novo.');
+      }
+    }
+    pintarTopo();
+    if (meu && dialogo.open && tela === 'ticket') pintarTicket();
+  }
+
+  // ----- abrir e fechar -----
+  botao.addEventListener('click', () => {
+    erro.hidden = true;
+    // ao abrir, a tela certa já aparece sem transição (quem anima é a tela inteira)
+    const nome = meu ? 'ticket' : 'entrar';
+    tela = nome;
+    telas.forEach((t) => { t.hidden = t.dataset.filaTela !== nome; });
+    acoes.forEach((a) => { a.hidden = a.dataset.filaAcoes !== nome; });
+    if (meu) pintarTicket(); else form.reset();
+    abrirModal(dialogo);
+    telas.find((t) => !t.hidden).querySelector('.etapa__titulo').focus({ preventScroll: true });
+    carregar();
+  });
+  dialogo.querySelectorAll('[data-fila-fechar]').forEach((b) => b.addEventListener('click', () => fecharModal(dialogo)));
+  // "Agende um horário": a fila desce e o agendamento abre por cima
+  dialogo.querySelector('[data-agenda]')?.addEventListener('click', () => fecharModal(dialogo));
+
+  // ----- entrar -----
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (tela !== 'entrar' || btEntrar.disabled) return;
+    erro.hidden = true;
+    const nome = form.elements.nome.value.trim();
+    const numero = tel.value.replace(/\D/g, '');
+    if (!abertoAgora()) {
+      const prox = proximaAbertura();
+      return avisar(`A fila está fechada agora. Abre ${prox?.quando || ''} às ${prox?.hora || '09h'}.`);
+    }
+    if (nome.length < 2) return avisar('Escreva seu nome.');
+    if (!/^\d{2}9\d{8}$/.test(numero)) return avisar('Confira o WhatsApp: DDD + número de celular, como (11) 91234-5678.');
+    btEntrar.disabled = true;
+    btEntrar.textContent = 'Entrando...';
+    try {
+      const t = await api.joinQueue({ nome, whatsapp: numero, servico: form.elements.servico.value || null });
+      ticketId = t.ticketId;
+      meu = t;
+      avisouProximo = false;
+      gravarTicket(ticketId);
+      [lista, meu] = await Promise.all([api.getQueue(), api.getMyTicket(ticketId)]).catch(() => [lista, t]);
+      carregado = true;
+      pintarTopo();
+      pintarTicket(); // monta a posição antes da troca, para a altura da tela acompanhar certo
+      mostrar('ticket');
+    } catch (err) {
+      avisar(err.message || 'Não foi possível entrar na fila agora. Tente de novo.');
+    } finally {
+      btEntrar.disabled = false;
+      btEntrar.textContent = 'Entrar na fila';
+    }
+  });
+
+  // ----- sair (com confirmação) -----
+  dialogo.querySelector('[data-fila-sair]').addEventListener('click', () => mostrar('ticket', 'confirmar'));
+  dialogo.querySelector('[data-fila-nao]').addEventListener('click', () => mostrar('ticket'));
+  dialogo.querySelector('[data-fila-sim]').addEventListener('click', async (e) => {
+    const b = e.currentTarget;
+    b.disabled = true;
+    try {
+      await api.leaveQueue(ticketId);
+      ticketId = null;
+      meu = null;
+      gravarTicket(null);
+      form.reset();
+      mostrar('entrar');
+      avisar('Você saiu da fila.');
+      await carregar();
+    } catch {
+      mostrar('ticket');
+      avisar('Não foi possível sair da fila agora. Tente de novo.');
+    } finally {
+      b.disabled = false;
+    }
+  });
+
+  // ----- atualização -----
+  carregar();
+  setInterval(() => { if (!document.hidden) carregar(); }, ATUALIZA);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) carregar(); });
+})();
+
+/* ---------- Barra fixa (celular): sobe de baixo depois que a pessoa passa do topo ----------
+   Desce sozinha com qualquer tela por cima aberta (CSS: .modal-aberto). */
+(function barraFixa() {
+  const barra = document.querySelector('.barra-celular');
+  const topo = document.querySelector('.hero');
+  if (!barra || !topo || !('IntersectionObserver' in window)) return;
+  const definir = (topoNaTela) => barra.classList.toggle('barra--fora', topoNaTela);
+  definir(topo.getBoundingClientRect().bottom > 0);
+  new IntersectionObserver(([e]) => definir(e.isIntersecting)).observe(topo);
 })();
 
 /* ---------- Mapa: carrega em segundo plano logo após a página abrir (ou antes, se a pessoa

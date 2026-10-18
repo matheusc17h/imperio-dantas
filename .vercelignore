@@ -1,0 +1,12 @@
+# nunca publicar segredos nem arquivos de trabalho (vale para deploy pelo terminal da Vercel)
+.env
+.env.*
+!.env.example
+_teste/
+db/
+*.pdf
+PROMPT-SITE.md
+img/WhatsApp Image*
+img/layout.png
+img/logo.jpeg
+img/salao.jpeg

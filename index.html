@@ -39,7 +39,7 @@
         imagesizes="(min-width: 960px) 44vw, 100vw">
 
   <link rel="stylesheet" href="css/style.css">
-
+  <script src="js/intro.js"></script>
 
   <!-- Dados estruturados: salão. Preços e horários iguais ao quadro de preços da página -->
   <script type="application/ld+json">
@@ -95,11 +95,9 @@
     "@context": "https://schema.org",
     "@type": "FAQPage",
     "mainEntity": [
-      { "@type": "Question", "name": "Precisa agendar?", "acceptedAnswer": { "@type": "Answer", "text": "É o melhor caminho. Toque em Agendar horário, escolha o serviço, o profissional, o dia e a hora. Se preferir, chame no WhatsApp (11) 94504-6553." } },
-      { "@type": "Question", "name": "Atende cabelo feminino?", "acceptedAnswer": { "@type": "Answer", "text": "Sim. O Império Dantas é um salão de beleza unissex: corte, química, limpeza de pele e penteados para todos." } },
-      { "@type": "Question", "name": "Quanto tempo leva a progressiva?", "acceptedAnswer": { "@type": "Answer", "text": "Cerca de 40 minutos. A progressiva custa R$ 85." } },
-      { "@type": "Question", "name": "O que é o nevou?", "acceptedAnswer": { "@type": "Answer", "text": "É a descoloração do cabelo até o platinado, quase branco. Leva cerca de 60 minutos e custa R$ 130." } },
-      { "@type": "Question", "name": "Abre domingo?", "acceptedAnswer": { "@type": "Answer", "text": "Sim, domingo das 09h às 15h. De terça a sábado, das 09h às 20h. Segunda fechado." } }
+      { "@type": "Question", "name": "Precisa agendar?", "acceptedAnswer": { "@type": "Answer", "text": "É o melhor caminho para garantir o horário. Toque em Agendar horário e siga os 4 passos: escolha o serviço, o profissional, o dia e o horário, e confirme com seu nome e telefone. Para ser atendido hoje sem hora marcada, use Entrar na fila." } },
+      { "@type": "Question", "name": "Qual a diferença entre agendar e entrar na fila?", "acceptedAnswer": { "@type": "Answer", "text": "O agendamento garante o seu horário: você escolhe o dia e a hora e chega na hora marcada. A fila é por ordem de chegada, para quem quer ser atendido no mesmo dia: você entra pelo site, acompanha a sua posição e vem para o salão quando estiver perto da sua vez." } },
+      { "@type": "Question", "name": "Atende cabelo feminino?", "acceptedAnswer": { "@type": "Answer", "text": "Sim. O Império Dantas é um salão de beleza unissex: corte, química, limpeza de pele e penteados para todos." } }
     ]
   }
   </script>
@@ -107,7 +105,7 @@
 
 <body>
   <!-- ===================== PRÉ-LOADER: a logo se monta (letras, coroa, base, círculo) =====================
-       Só CSS: some sozinho em ~2s mesmo se o JS falhar. Toque ou tecla pula. -->
+       Só na primeira visita da sessão (js/intro.js). Some sozinho em ~1,2s mesmo se o JS falhar. Toque ou tecla pula. -->
   <div class="intro" aria-hidden="true" data-intro>
     <div class="intro__selo">
       <svg class="intro__circulo" viewBox="0 0 200 200"><circle cx="100" cy="100" r="97" pathLength="100"/></svg>
@@ -129,30 +127,18 @@
       <span class="nav__nome"><small>Império</small>Dantas</span>
     </a>
     <nav class="nav__links" id="menu" aria-label="Principal">
-      <a href="#servicos">Serviços</a>
       <a href="#precos">Preços</a>
       <a href="#trabalhos">Trabalhos</a>
-      <a href="#horario">Horário</a>
       <a href="#duvidas">Dúvidas</a>
+      <a href="#horario">Horário</a>
     </nav>
-    <!-- Área do cliente escondida do menu por enquanto (contradiz o "sem cadastro e sem aplicativo").
-         As páginas entrar.html e agendamentos.html continuam existindo; para voltar, descomente:
-    <div class="nav__icones">
-      <a class="nav__icone" href="agendamentos.html" aria-label="Meus agendamentos" title="Meus agendamentos">
-        <svg aria-hidden="true" viewBox="0 0 24 24"><use href="#i-agenda"/></svg>
-      </a>
-      <a class="nav__icone" href="entrar.html" aria-label="Entrar na minha conta" title="Entrar">
-        <svg aria-hidden="true" viewBox="0 0 24 24"><use href="#i-conta"/></svg>
-      </a>
-    </div>
-    -->
-    <a class="botao botao--claro nav__cta" href="https://wa.me/5511945046553?text=Ol%C3%A1!%20Vim%20pelo%20site%20e%20quero%20agendar%20um%20hor%C3%A1rio." data-wa="Olá! Vim pelo site e quero agendar um horário." data-agenda data-evento="agenda-menu" target="_blank" rel="noopener">Agendar horário</a>
+    <button type="button" class="botao botao--claro nav__cta" data-agenda>Agendar horário</button>
     <button class="nav__menu" type="button" aria-expanded="false" aria-controls="menu" aria-label="Abrir menu" data-menu><span></span><span></span></button>
   </header>
 
   <main id="conteudo">
 
-    <!-- Primeira dobra: hero + diferenciais ocupam exatamente a tela no desktop -->
+    <!-- Primeira dobra: o hero ocupa exatamente a tela no desktop -->
     <div class="dobra">
     <!-- ===================== HERO ===================== -->
     <section class="hero" id="inicio">
@@ -165,9 +151,12 @@
         </div>
         <p class="hero__sub">Degradê, navalhado, luzes, nevou e progressiva no mesmo lugar. Você vê o preço e o tempo de cada serviço e marca o seu horário aqui mesmo.</p>
         <div class="hero__acoes">
-          <a class="botao botao--claro" href="https://wa.me/5511945046553?text=Ol%C3%A1!%20Vim%20pelo%20site%20e%20quero%20agendar%20um%20hor%C3%A1rio." data-wa="Olá! Vim pelo site e quero agendar um horário." data-agenda data-evento="agenda-hero" target="_blank" rel="noopener">Agendar horário</a>
-          <a class="botao botao--contorno" href="#precos">Ver preços</a>
+          <button type="button" class="botao botao--claro" data-agenda>Agendar horário</button>
+          <button type="button" class="botao botao--claro" data-fila-abrir disabled>Entrar na fila</button>
         </div>
+        <!-- fila ao vivo (js/main.js). Sempre ocupa a linha, aberta ou fechada: nada pula quando os dados chegam -->
+        <p class="fila-ao-vivo" data-fila-info aria-live="polite"><span class="fila-ao-vivo__ponto" aria-hidden="true"></span><span data-fila-texto></span></p>
+        <a class="hero__precos" href="#precos">Ver tabela de preços</a>
         <dl class="hero__fatos">
           <div><dt>Domingo</dt><dd>aberto das 09h às 15h</dd></div>
           <div><dt>R$ 15 a R$ 130</dt><dd>12 serviços com preço fechado</dd></div>
@@ -188,70 +177,12 @@
       </figure>
     </section>
 
-    <!-- ===================== DIFERENCIAIS ===================== -->
-    <section class="fatos" aria-label="Por que agendar aqui">
-      <ul class="fatos__lista">
-        <li><svg aria-hidden="true" viewBox="0 0 40 40"><use href="#i-tesoura"/></svg><div><h2>Salão unissex</h2><p>Corte, química, barba e pele para todos</p></div></li>
-        <li><svg aria-hidden="true" viewBox="0 0 40 40"><use href="#i-domingo"/></svg><div><h2>Aberto domingo</h2><p>Das 09h às 15h, quando quase tudo fecha</p></div></li>
-        <li><svg aria-hidden="true" viewBox="0 0 40 40"><use href="#i-mensagem"/></svg><div><h2>Agenda no WhatsApp</h2><p>Sem cadastro e sem aplicativo</p></div></li>
-        <li><svg aria-hidden="true" viewBox="0 0 40 40"><use href="#i-etiqueta"/></svg><div><h2>Preço na tela</h2><p>Valor e tempo de cada serviço antes de marcar</p></div></li>
-      </ul>
-    </section>
     </div>
 
-    <!-- ===================== SERVIÇOS EM DESTAQUE (cards com foto real) ===================== -->
-    <section class="servicos" id="servicos">
-      <div class="servicos__intro">
-        <h2 class="titulo">Os mais pedidos da casa</h2>
-        <p>Os serviços mais pedidos, com foto de trabalho feito aqui. A tabela completa está logo abaixo.</p>
-        <div class="setas">
-          <button type="button" class="seta" data-seta="-1" aria-label="Ver serviço anterior"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M15 5 8 12l7 7"/></svg></button>
-          <button type="button" class="seta" data-seta="1" aria-label="Ver próximo serviço"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></button>
-        </div>
-      </div>
-      <ul class="cartoes" data-trilho>
-        <li class="cartao">
-          <img decoding="async" src="img/site/degrade-alto-600.webp" width="600" height="800" loading="lazy" alt="Corte degradê com topo volumoso feito no Império Dantas">
-          <h3>Corte degradê</h3>
-          <p>Transição suave da máquina até o comprimento de cima, na altura que você escolher.</p>
-          <p class="cartao__valor"><strong>R$ 35</strong><span data-tempo-de="Corte degradê">35 min</span></p>
-          <a class="cartao__acao" href="https://wa.me/5511945046553?text=Ol%C3%A1!%20Vim%20pelo%20site%20e%20quero%20agendar%3A%20Corte%20degrad%C3%AA%20(R%24%2035)." data-agendar="Corte degradê" data-evento="whatsapp-servico" target="_blank" rel="noopener">Agendar degradê</a>
-        </li>
-        <li class="cartao">
-          <img decoding="async" src="img/site/degrade-navalhado-600.webp" width="600" height="800" loading="lazy" alt="Corte navalhado com lateral lisa feito no Império Dantas"><!-- CONFIRMAR COM O CLIENTE: foto representa navalhado -->
-          <h3>Corte navalhado</h3>
-          <p>Degradê finalizado na navalha, com lateral lisa e contorno bem marcado.</p>
-          <p class="cartao__valor"><strong>R$ 40</strong><span data-tempo-de="Corte navalhado">40 min</span></p>
-          <a class="cartao__acao" href="https://wa.me/5511945046553?text=Ol%C3%A1!%20Vim%20pelo%20site%20e%20quero%20agendar%3A%20Corte%20navalhado%20(R%24%2040)." data-agendar="Corte navalhado" data-evento="whatsapp-servico" target="_blank" rel="noopener">Agendar navalhado</a>
-        </li>
-        <li class="cartao">
-          <img decoding="async" src="img/site/luzes-platinadas-600.webp" width="600" height="800" loading="lazy" alt="Luzes platinadas em cabelo masculino feitas no Império Dantas"><!-- CONFIRMAR COM O CLIENTE: foto representa luzes -->
-          <h3>Luzes</h3>
-          <p>Mechas clareadas que dão contraste ao corte, do discreto ao marcante.</p>
-          <p class="cartao__valor"><strong>R$ 100</strong><span data-tempo-de="Luzes">60 min</span></p><!-- TODO: confirmar tempo real com o dono (Luzes) -->
-          <a class="cartao__acao" href="https://wa.me/5511945046553?text=Ol%C3%A1!%20Vim%20pelo%20site%20e%20quero%20agendar%3A%20Luzes%20(R%24%20100)." data-agendar="Luzes" data-evento="whatsapp-servico" target="_blank" rel="noopener">Agendar luzes</a>
-        </li>
-        <li class="cartao">
-          <img decoding="async" src="img/site/corte-tesoura-600.webp" width="600" height="800" loading="lazy" alt="Corte social na tesoura feito no Império Dantas"><!-- CONFIRMAR COM O CLIENTE: foto representa corte social -->
-          <h3>Corte social</h3>
-          <p>Tesoura e máquina, acabamento limpo para o trabalho e o dia a dia.</p>
-          <p class="cartao__valor"><strong>R$ 30</strong><span data-tempo-de="Corte social">30 min</span></p>
-          <a class="cartao__acao" href="https://wa.me/5511945046553?text=Ol%C3%A1!%20Vim%20pelo%20site%20e%20quero%20agendar%3A%20Corte%20social%20(R%24%2030)." data-agendar="Corte social" data-evento="whatsapp-servico" target="_blank" rel="noopener">Agendar corte social</a>
-        </li>
-        <li class="cartao">
-          <img decoding="async" src="img/site/degrade-risca-600.webp" width="600" height="800" loading="lazy" alt="Cabelo penteado com risca lateral feito no Império Dantas"><!-- TODO: confirmar com o dono se esta foto representa bem "Penteados". O salão faz tranças como serviço separado? Se sim, qual o preço e o tempo? -->
-          <h3>Penteados</h3>
-          <p>Penteado para festa, evento ou foto, feito na hora.</p>
-          <p class="cartao__valor"><strong>R$ 30</strong><span data-tempo-de="Penteados">25 min</span></p>
-          <a class="cartao__acao" href="https://wa.me/5511945046553?text=Ol%C3%A1!%20Vim%20pelo%20site%20e%20quero%20agendar%3A%20Penteados%20(R%24%2030)." data-agendar="Penteados" data-evento="whatsapp-servico" target="_blank" rel="noopener">Agendar penteado</a>
-        </li>
-      </ul>
-    </section>
-
     <!-- ===================== QUADRO DE PREÇOS (versão digital da placa preta da parede do salão)
-         Fonte única de preços e tempos: data-preco e data-min de cada item. O JS repete o tempo nos cartões,
-         no FAQ e no JSON-LD do FAQ ([data-tempo-de]). Para mudar um tempo: só o data-min aqui
-         (e o mesmo valor em api/_lib.js, que o servidor usa para conferir). ===================== -->
+         Fonte única de preços e tempos: data-preco e data-min de cada item. O passo 1 do agendamento
+         monta os serviços a partir daqui. Para mudar um tempo: o data-min aqui e o mesmo valor em
+         api/_lib.js, que o servidor usa para conferir. ===================== -->
     <section class="quadro" id="precos">
       <div class="quadro__placa">
         <header class="quadro__topo">
@@ -264,31 +195,31 @@
           <div class="quadro__grupo">
             <h3>Cortes</h3>
             <ul>
-              <li id="corte-social"><a href="https://wa.me/5511945046553?text=Ol%C3%A1!%20Vim%20pelo%20site%20e%20quero%20agendar%3A%20Corte%20social%20(R%24%2030)." data-servico="Corte social" data-preco="30" data-min="30" data-evento="whatsapp-tabela" target="_blank" rel="noopener"><span class="quadro__nome">Corte social</span><span class="quadro__tempo">30 min</span><span class="quadro__preco">R$ 30</span></a></li>
-              <li id="corte-degrade"><a href="https://wa.me/5511945046553?text=Ol%C3%A1!%20Vim%20pelo%20site%20e%20quero%20agendar%3A%20Corte%20degrad%C3%AA%20(R%24%2035)." data-servico="Corte degradê" data-preco="35" data-min="35" data-evento="whatsapp-tabela" target="_blank" rel="noopener"><span class="quadro__nome">Corte degradê</span><span class="quadro__tempo">35 min</span><span class="quadro__preco">R$ 35</span></a></li>
-              <li id="corte-navalhado"><a href="https://wa.me/5511945046553?text=Ol%C3%A1!%20Vim%20pelo%20site%20e%20quero%20agendar%3A%20Corte%20navalhado%20(R%24%2040)." data-servico="Corte navalhado" data-preco="40" data-min="40" data-evento="whatsapp-tabela" target="_blank" rel="noopener"><span class="quadro__nome">Corte navalhado</span><span class="quadro__tempo">40 min</span><span class="quadro__preco">R$ 40</span></a></li>
+              <li id="corte-social"><button type="button" data-servico="Corte social" data-preco="30" data-min="30"><span class="quadro__nome">Corte social</span><span class="quadro__tempo">30 min</span><span class="quadro__preco">R$ 30</span></button></li>
+              <li id="corte-degrade"><button type="button" data-servico="Corte degradê" data-preco="35" data-min="35"><span class="quadro__nome">Corte degradê</span><span class="quadro__tempo">35 min</span><span class="quadro__preco">R$ 35</span></button></li>
+              <li id="corte-navalhado"><button type="button" data-servico="Corte navalhado" data-preco="40" data-min="40"><span class="quadro__nome">Corte navalhado</span><span class="quadro__tempo">40 min</span><span class="quadro__preco">R$ 40</span></button></li>
             </ul>
           </div>
           <div class="quadro__grupo">
             <h3>Química</h3>
             <ul>
-              <li id="relaxamento"><a href="https://wa.me/5511945046553?text=Ol%C3%A1!%20Vim%20pelo%20site%20e%20quero%20agendar%3A%20Relaxamento%20(R%24%2030)." data-servico="Relaxamento" data-preco="30" data-min="20" data-evento="whatsapp-tabela" target="_blank" rel="noopener"><span class="quadro__nome">Relaxamento</span><span class="quadro__tempo">20 min</span><span class="quadro__preco">R$ 30</span></a></li><!-- TODO: confirmar tempo real com o dono (Relaxamento) -->
-              <li id="progressiva"><a href="https://wa.me/5511945046553?text=Ol%C3%A1!%20Vim%20pelo%20site%20e%20quero%20agendar%3A%20Progressiva%20(R%24%2085)." data-servico="Progressiva" data-preco="85" data-min="40" data-evento="whatsapp-tabela" target="_blank" rel="noopener"><span class="quadro__nome">Progressiva</span><span class="quadro__tempo">40 min</span><span class="quadro__preco">R$ 85</span></a></li><!-- TODO: confirmar tempo real com o dono (Progressiva) -->
-              <li id="botox"><a href="https://wa.me/5511945046553?text=Ol%C3%A1!%20Vim%20pelo%20site%20e%20quero%20agendar%3A%20Botox%20(R%24%2070)." data-servico="Botox" data-preco="70" data-min="40" data-evento="whatsapp-tabela" target="_blank" rel="noopener"><span class="quadro__nome">Botox</span><span class="quadro__tempo">40 min</span><span class="quadro__preco">R$ 70</span></a></li><!-- TODO: confirmar tempo real com o dono (Botox) -->
-              <li id="luzes"><a href="https://wa.me/5511945046553?text=Ol%C3%A1!%20Vim%20pelo%20site%20e%20quero%20agendar%3A%20Luzes%20(R%24%20100)." data-servico="Luzes" data-preco="100" data-min="60" data-evento="whatsapp-tabela" target="_blank" rel="noopener"><span class="quadro__nome">Luzes</span><span class="quadro__tempo">60 min</span><span class="quadro__preco">R$ 100</span></a></li><!-- TODO: confirmar tempo real com o dono (Luzes) -->
-              <li id="nevou"><a href="https://wa.me/5511945046553?text=Ol%C3%A1!%20Vim%20pelo%20site%20e%20quero%20agendar%3A%20Nevou%20(R%24%20130)." data-servico="Nevou" data-preco="130" data-min="60" data-evento="whatsapp-tabela" target="_blank" rel="noopener"><span class="quadro__nome">Nevou</span><span class="quadro__tempo">60 min</span><span class="quadro__preco">R$ 130</span></a></li><!-- TODO: confirmar tempo real com o dono (Nevou) -->
+              <li id="relaxamento"><button type="button" data-servico="Relaxamento" data-preco="30" data-min="20"><span class="quadro__nome">Relaxamento</span><span class="quadro__tempo">20 min</span><span class="quadro__preco">R$ 30</span></button></li><!-- TODO: confirmar tempo real com o dono (Relaxamento) -->
+              <li id="progressiva"><button type="button" data-servico="Progressiva" data-preco="85" data-min="40"><span class="quadro__nome">Progressiva</span><span class="quadro__tempo">40 min</span><span class="quadro__preco">R$ 85</span></button></li><!-- TODO: confirmar tempo real com o dono (Progressiva) -->
+              <li id="botox"><button type="button" data-servico="Botox" data-preco="70" data-min="40"><span class="quadro__nome">Botox</span><span class="quadro__tempo">40 min</span><span class="quadro__preco">R$ 70</span></button></li><!-- TODO: confirmar tempo real com o dono (Botox) -->
+              <li id="luzes"><button type="button" data-servico="Luzes" data-preco="100" data-min="60"><span class="quadro__nome">Luzes</span><span class="quadro__tempo">60 min</span><span class="quadro__preco">R$ 100</span></button></li><!-- TODO: confirmar tempo real com o dono (Luzes) -->
+              <li id="nevou"><button type="button" data-servico="Nevou" data-preco="130" data-min="60"><span class="quadro__nome">Nevou</span><span class="quadro__tempo">60 min</span><span class="quadro__preco">R$ 130</span></button></li><!-- TODO: confirmar tempo real com o dono (Nevou) -->
             </ul>
           </div>
           <div class="quadro__grupo">
             <h3>Barba</h3>
             <ul>
-              <li id="barba"><a href="https://wa.me/5511945046553?text=Ol%C3%A1!%20Vim%20pelo%20site%20e%20quero%20agendar%3A%20Barba%20(R%24%2025)." data-servico="Barba" data-preco="25" data-min="25" data-evento="whatsapp-tabela" target="_blank" rel="noopener"><span class="quadro__nome">Barba</span><span class="quadro__tempo">25 min</span><span class="quadro__preco">R$ 25</span></a></li>
+              <li id="barba"><button type="button" data-servico="Barba" data-preco="25" data-min="25"><span class="quadro__nome">Barba</span><span class="quadro__tempo">25 min</span><span class="quadro__preco">R$ 25</span></button></li>
             </ul>
             <h3>Pele e estilo</h3>
             <ul>
-              <li id="limpeza-de-pele"><a href="https://wa.me/5511945046553?text=Ol%C3%A1!%20Vim%20pelo%20site%20e%20quero%20agendar%3A%20Limpeza%20de%20pele%20(R%24%2015)." data-servico="Limpeza de pele" data-preco="15" data-min="20" data-evento="whatsapp-tabela" target="_blank" rel="noopener"><span class="quadro__nome">Limpeza de pele</span><span class="quadro__tempo">20 min</span><span class="quadro__preco">R$ 15</span></a></li>
-              <li id="limpeza-completa"><a href="https://wa.me/5511945046553?text=Ol%C3%A1!%20Vim%20pelo%20site%20e%20quero%20agendar%3A%20Limpeza%20completa%20(R%24%2030)." data-servico="Limpeza completa" data-preco="30" data-min="30" data-evento="whatsapp-tabela" target="_blank" rel="noopener"><span class="quadro__nome">Limpeza completa</span><span class="quadro__tempo">30 min</span><span class="quadro__preco">R$ 30</span></a></li>
-              <li id="penteados"><a href="https://wa.me/5511945046553?text=Ol%C3%A1!%20Vim%20pelo%20site%20e%20quero%20agendar%3A%20Penteados%20(R%24%2030)." data-servico="Penteados" data-preco="30" data-min="25" data-evento="whatsapp-tabela" target="_blank" rel="noopener"><span class="quadro__nome">Penteados</span><span class="quadro__tempo">25 min</span><span class="quadro__preco">R$ 30</span></a></li>
+              <li id="limpeza-de-pele"><button type="button" data-servico="Limpeza de pele" data-preco="15" data-min="20"><span class="quadro__nome">Limpeza de pele</span><span class="quadro__tempo">20 min</span><span class="quadro__preco">R$ 15</span></button></li>
+              <li id="limpeza-completa"><button type="button" data-servico="Limpeza completa" data-preco="30" data-min="30"><span class="quadro__nome">Limpeza completa</span><span class="quadro__tempo">30 min</span><span class="quadro__preco">R$ 30</span></button></li>
+              <li id="penteados"><button type="button" data-servico="Penteados" data-preco="30" data-min="25"><span class="quadro__nome">Penteados</span><span class="quadro__tempo">25 min</span><span class="quadro__preco">R$ 30</span></button></li>
             </ul>
           </div>
         </div>
@@ -314,17 +245,12 @@
       </div>
       <!-- CONFIRMAR COM O CLIENTE: legendas de cada foto -->
       <ul class="galeria">
-        <li class="foto"><button type="button" class="foto__abrir" data-ampliar="img/site/luzes-platinadas-1200.webp" aria-label="Ampliar foto: luzes"><img decoding="async" src="img/site/luzes-platinadas-600.webp" width="600" height="800" loading="lazy" alt="Luzes platinadas em cabelo penteado para trás"></button><p class="foto__legenda">Luzes</p><a class="foto__quero" href="#agendar" data-quero="Luzes" data-servicos="Luzes" data-evento="portfolio-simulador">Quero esse</a></li>
-        <li class="foto"><button type="button" class="foto__abrir" data-ampliar="img/site/degrade-risca-1200.webp" aria-label="Ampliar foto: degradê com risca"><img decoding="async" src="img/site/degrade-risca-600.webp" width="600" height="800" loading="lazy" alt="Degradê com risca lateral e topo penteado"></button><p class="foto__legenda">Degradê com risca</p><a class="foto__quero" href="#agendar" data-quero="Degradê com risca" data-servicos="Corte degradê" data-evento="portfolio-simulador">Quero esse</a></li>
-        <li class="foto"><button type="button" class="foto__abrir" data-ampliar="img/site/degrade-navalhado-1200.webp" aria-label="Ampliar foto: navalhado"><img decoding="async" src="img/site/degrade-navalhado-600.webp" width="600" height="800" loading="lazy" alt="Degradê navalhado com lateral lisa"></button><p class="foto__legenda">Navalhado</p><a class="foto__quero" href="#agendar" data-quero="Navalhado" data-servicos="Corte navalhado" data-evento="portfolio-simulador">Quero esse</a></li>
-        <li class="foto foto--alta"><button type="button" class="foto__abrir" data-ampliar="img/site/degrade-alto-1200.webp" aria-label="Ampliar foto: degradê"><img decoding="async" src="img/site/degrade-alto-600.webp" width="600" height="800" loading="lazy" alt="Degradê alto com topo volumoso, visto de lado"></button><p class="foto__legenda">Degradê</p><a class="foto__quero" href="#agendar" data-quero="Degradê" data-servicos="Corte degradê" data-evento="portfolio-simulador">Quero esse</a></li>
-        <li class="foto foto--alta"><button type="button" class="foto__abrir" data-ampliar="img/site/trancas-degrade-1200.webp" aria-label="Ampliar foto: tranças e degradê"><img decoding="async" src="img/site/trancas-degrade-600.webp" width="600" height="800" loading="lazy" alt="Tranças nagô com degradê na lateral"></button><p class="foto__legenda">Tranças e degradê</p><a class="foto__quero" href="#agendar" data-quero="Tranças e degradê" data-servicos="Corte degradê|Penteados" data-evento="portfolio-simulador">Quero esse</a></li>
-        <li class="foto"><button type="button" class="foto__abrir" data-ampliar="img/site/corte-tesoura-1200.webp" aria-label="Ampliar foto: corte na tesoura"><img decoding="async" src="img/site/corte-tesoura-600.webp" width="600" height="800" loading="lazy" alt="Corte na tesoura com fios ondulados, visto por trás"></button><p class="foto__legenda">Corte na tesoura</p><a class="foto__quero" href="#agendar" data-quero="Corte na tesoura" data-servicos="Corte social" data-evento="portfolio-simulador">Quero esse</a></li>
-        <li class="foto"><button type="button" class="foto__abrir" data-ampliar="img/site/luzes-perfil-1200.webp" aria-label="Ampliar foto: luzes de perfil"><img decoding="async" src="img/site/luzes-perfil-600.webp" width="600" height="800" loading="lazy" alt="Luzes acinzentadas com degradê baixo, de perfil"></button><p class="foto__legenda">Luzes</p><a class="foto__quero" href="#agendar" data-quero="Luzes" data-servicos="Luzes" data-evento="portfolio-simulador">Quero esse</a></li>
-        <li class="foto"><button type="button" class="foto__abrir" data-ampliar="img/site/degrade-nuca-1200.webp" aria-label="Ampliar foto: degradê na nuca"><img decoding="async" src="img/site/degrade-nuca-600.webp" width="600" height="800" loading="lazy" alt="Degradê visto pela nuca com topo penteado"></button><p class="foto__legenda">Degradê</p><a class="foto__quero" href="#agendar" data-quero="Degradê" data-servicos="Corte degradê" data-evento="portfolio-simulador">Quero esse</a></li>
-        <li class="foto"><button type="button" class="foto__abrir" data-ampliar="img/site/corte-social-liso-1200.webp" aria-label="Ampliar foto: corte social"><img decoding="async" src="img/site/corte-social-liso-600.webp" width="600" height="800" loading="lazy" alt="Corte social com fios lisos e acabamento na nuca"></button><p class="foto__legenda">Corte social</p><a class="foto__quero" href="#agendar" data-quero="Corte social" data-servicos="Corte social" data-evento="portfolio-simulador">Quero esse</a></li>
-        <li class="foto"><button type="button" class="foto__abrir" data-ampliar="img/site/degrade-lateral-1200.webp" aria-label="Ampliar foto: degradê lateral"><img decoding="async" src="img/site/degrade-lateral-600.webp" width="600" height="800" loading="lazy" alt="Degradê com topo curto, visto de lado"></button><p class="foto__legenda">Degradê</p><a class="foto__quero" href="#agendar" data-quero="Degradê" data-servicos="Corte degradê" data-evento="portfolio-simulador">Quero esse</a></li>
-        <li class="foto"><button type="button" class="foto__abrir" data-ampliar="img/site/degrade-baixo-1200.webp" aria-label="Ampliar foto: degradê baixo"><img decoding="async" src="img/site/degrade-baixo-600.webp" width="600" height="800" loading="lazy" alt="Degradê baixo com acabamento na testa"></button><p class="foto__legenda">Degradê baixo</p><a class="foto__quero" href="#agendar" data-quero="Degradê baixo" data-servicos="Corte degradê" data-evento="portfolio-simulador">Quero esse</a></li>
+        <li class="foto"><button type="button" class="foto__abrir" data-ampliar="img/site/luzes-platinadas-1200.webp" aria-label="Ampliar foto: luzes platinadas"><img decoding="async" src="img/site/luzes-platinadas-600.webp" width="600" height="800" loading="lazy" alt="Luzes platinadas em cabelo penteado para trás"></button><p class="foto__legenda">Luzes platinadas</p><button type="button" class="foto__quero" data-quero="Luzes platinadas" data-servicos="Luzes">Quero esse</button></li>
+        <li class="foto"><button type="button" class="foto__abrir" data-ampliar="img/site/degrade-risca-1200.webp" aria-label="Ampliar foto: degradê com risca"><img decoding="async" src="img/site/degrade-risca-600.webp" width="600" height="800" loading="lazy" alt="Degradê com risca lateral e topo penteado"></button><p class="foto__legenda">Degradê com risca</p><button type="button" class="foto__quero" data-quero="Degradê com risca" data-servicos="Corte degradê">Quero esse</button></li>
+        <li class="foto"><button type="button" class="foto__abrir" data-ampliar="img/site/degrade-navalhado-1200.webp" aria-label="Ampliar foto: navalhado"><img decoding="async" src="img/site/degrade-navalhado-600.webp" width="600" height="800" loading="lazy" alt="Degradê navalhado com lateral lisa"></button><p class="foto__legenda">Navalhado</p><button type="button" class="foto__quero" data-quero="Navalhado" data-servicos="Corte navalhado">Quero esse</button></li>
+        <li class="foto"><button type="button" class="foto__abrir" data-ampliar="img/site/trancas-degrade-1200.webp" aria-label="Ampliar foto: tranças e degradê"><img decoding="async" src="img/site/trancas-degrade-600.webp" width="600" height="800" loading="lazy" alt="Tranças nagô com degradê na lateral"></button><p class="foto__legenda">Tranças e degradê</p><button type="button" class="foto__quero" data-quero="Tranças e degradê" data-servicos="Corte degradê|Penteados">Quero esse</button></li>
+        <li class="foto"><button type="button" class="foto__abrir" data-ampliar="img/site/corte-tesoura-1200.webp" aria-label="Ampliar foto: corte na tesoura"><img decoding="async" src="img/site/corte-tesoura-600.webp" width="600" height="800" loading="lazy" alt="Corte na tesoura com fios ondulados, visto por trás"></button><p class="foto__legenda">Corte na tesoura</p><button type="button" class="foto__quero" data-quero="Corte na tesoura" data-servicos="Corte social">Quero esse</button></li>
+        <li class="foto"><button type="button" class="foto__abrir" data-ampliar="img/site/corte-social-liso-1200.webp" aria-label="Ampliar foto: corte social"><img decoding="async" src="img/site/corte-social-liso-600.webp" width="600" height="800" loading="lazy" alt="Corte social com fios lisos e acabamento na nuca"></button><p class="foto__legenda">Corte social</p><button type="button" class="foto__quero" data-quero="Corte social" data-servicos="Corte social">Quero esse</button></li>
         <li class="foto foto--insta"><a href="https://www.instagram.com/imperioo_dantas/" target="_blank" rel="noopener"><svg aria-hidden="true" viewBox="0 0 24 24"><use href="#i-instagram"/></svg><span>Veja mais trabalhos no Instagram</span><small>@imperioo_dantas</small></a></li>
       </ul>
     </section>
@@ -358,31 +284,16 @@
       </ul>
     </section>
 
-    <!-- ===================== AGENDAR: simulador de visita ===================== -->
-    <section class="agendar" id="agendar">
-      <figure class="agendar__foto">
-        <img decoding="async" src="img/site/barbeiro-atendendo-1200.webp" width="1200" height="1600" loading="lazy" alt="Barbeiro do Império Dantas finalizando um corte na cadeira">
-        <figcaption>Hora marcada, cadeira esperando.</figcaption>
-      </figure>
-
-      <form class="simulador" data-simulador novalidate>
-        <h2 class="titulo">Monte sua visita</h2>
-        <p class="simulador__intro">Escolha um ou mais serviços e veja o total. Depois é só escolher profissional, dia e horário.</p>
-
-        <fieldset class="passo">
-          <legend class="sr">Serviços</legend>
-          <div class="chips" data-chips><!-- preenchido pelo JS a partir da tabela de preços --></div>
-        </fieldset>
-
-        <dl class="simulador__total" aria-live="polite">
-          <div><dt>Total</dt><dd data-total-preco>R$ 0</dd></div>
-          <div><dt>Tempo</dt><dd data-total-tempo>0 min</dd></div>
-        </dl>
-
-        <button type="button" class="botao botao--escuro botao--largo" data-enviar data-agenda="" data-agenda-pular data-evento="agenda-simulador" disabled>
-          <span data-enviar-texto>Escolha pelo menos um serviço</span>
-        </button>
-      </form>
+    <!-- ===================== DÚVIDAS ===================== -->
+    <section class="duvidas" id="duvidas">
+      <h2 class="titulo">Antes de sentar na cadeira</h2>
+      <div class="duvidas__lista">
+        <details><summary>Precisa agendar?</summary><p>É o melhor caminho para garantir o horário. Toque em Agendar horário e siga os 4 passos: escolha o serviço, o profissional, o dia e o horário, e confirme com seu nome e telefone. Para ser atendido hoje sem hora marcada, use Entrar na fila.</p></details>
+        <details><summary>Qual a diferença entre agendar e entrar na fila?</summary><p>O agendamento garante o seu horário: você escolhe o dia e a hora e chega na hora marcada. A fila é por ordem de chegada, para quem quer ser atendido no mesmo dia: você entra pelo site, acompanha a sua posição e vem para o salão quando estiver perto da sua vez.</p></details>
+        <details><summary>Atende cabelo feminino?</summary><p>Sim. O Império Dantas é um salão de beleza unissex: corte, química, limpeza de pele e penteados para todos.</p></details>
+        <!-- PREENCHER e descomentar (e adicionar no JSON-LD FAQPage):
+        <details><summary>Quais formas de pagamento?</summary><p>[FORMAS DE PAGAMENTO]</p></details> -->
+      </div>
     </section>
 
     <!-- ===================== HORÁRIO E LOCAL ===================== -->
@@ -408,8 +319,12 @@
           <span>Estrada do Pequiá, 1828</span>
           <span>Vila Silviania, Carapicuíba, SP</span>
           <span>CEP 06381-095</span>
-          <a href="tel:+5511945046553">(11) 94504-6553</a>
         </address>
+        <!-- contato: telefone e WhatsApp como pílulas, no mesmo estilo dos botões do site -->
+        <div class="contato">
+          <a class="contato__item" href="tel:+5511945046553"><svg aria-hidden="true" viewBox="0 0 24 24"><use href="#i-telefone"/></svg>(11) 94504-6553</a>
+          <a class="contato__item" href="https://wa.me/5511945046553?text=Ol%C3%A1!%20Vim%20pelo%20site." data-wa="Olá! Vim pelo site." data-evento="whatsapp-horario" target="_blank" rel="noopener"><svg class="icone-wa" aria-hidden="true"><use href="#i-whatsapp"/></svg>WhatsApp</a>
+        </div>
         <div class="mapa" data-mapa>
           <div class="mapa__previa" aria-hidden="true">
             <svg viewBox="0 0 24 24"><path d="M12 21s-6.5-6.1-6.5-11a6.5 6.5 0 0 1 13 0c0 4.9-6.5 11-6.5 11Z"/><circle cx="12" cy="10" r="2.4"/></svg>
@@ -418,54 +333,25 @@
         <a class="botao botao--contorno" href="https://www.google.com/maps/search/?api=1&amp;query=Estrada%20do%20Pequi%C3%A1%2C%201828%2C%20Carapicu%C3%ADba%20-%20SP%2C%2006381-095" data-como-chegar target="_blank" rel="noopener">Abrir no Google Maps</a>
       </div>
     </section>
-
-    <!-- ===================== DÚVIDAS ===================== -->
-    <section class="duvidas" id="duvidas">
-      <h2 class="titulo">Antes de sentar na cadeira</h2>
-      <div class="duvidas__lista">
-        <details><summary>Precisa agendar?</summary><p>É o melhor caminho. Toque em Agendar horário, escolha o serviço, o profissional, o dia e a hora. Se preferir, chame no WhatsApp (11) 94504-6553.</p></details>
-        <details><summary>Atende cabelo feminino?</summary><p>Sim. O Império Dantas é um salão de beleza unissex: corte, química, limpeza de pele e penteados para todos.</p></details>
-        <details><summary>Quanto tempo leva a progressiva?</summary><p>Cerca de <span data-tempo-de="Progressiva" data-unidade="minutos">40 minutos</span>. A progressiva custa R$ 85.</p></details><!-- TODO: confirmar tempo real com o dono (Progressiva) -->
-        <details><summary>O que é o nevou?</summary><p>É a descoloração do cabelo até o platinado, quase branco. Leva cerca de <span data-tempo-de="Nevou" data-unidade="minutos">60 minutos</span> e custa R$ 130.</p></details><!-- TODO: confirmar tempo real com o dono (Nevou) -->
-        <details><summary>Abre domingo?</summary><p>Sim, domingo das 09h às 15h. De terça a sábado, das 09h às 20h. Segunda fechado.</p></details>
-        <!-- PREENCHER e descomentar (e adicionar no JSON-LD FAQPage):
-        <details><summary>Quais formas de pagamento?</summary><p>[FORMAS DE PAGAMENTO]</p></details> -->
-      </div>
-    </section>
   </main>
 
   <!-- ===================== RODAPÉ ===================== -->
   <footer class="rodape">
-    <img decoding="async" class="rodape__logo" src="img/site/logo-imperio-dantas.webp" width="640" height="626" loading="lazy" alt="Logo Império Dantas, Salão de Beleza Unissex">
-    <div class="rodape__col">
-      <h2>Contato</h2>
-      <a class="rodape__rede" href="https://wa.me/5511945046553?text=Ol%C3%A1!%20Vim%20pelo%20site%20e%20quero%20agendar%20um%20hor%C3%A1rio." data-wa="Olá! Vim pelo site e quero agendar um horário." data-evento="whatsapp-rodape" target="_blank" rel="noopener" aria-label="WhatsApp do Império Dantas"><svg aria-hidden="true" viewBox="0 0 24 24"><use href="#i-whatsapp"/></svg>WhatsApp</a>
+    <a class="nav__marca rodape__marca" href="#inicio" aria-label="Império Dantas, voltar ao início">
+      <img decoding="async" loading="lazy" src="img/site/coroa.png" alt="" width="370" height="350">
+      <span class="nav__nome"><small>Império</small>Dantas</span>
+    </a>
+    <div class="rodape__contato">
+      <a class="rodape__rede" href="https://wa.me/5511945046553?text=Ol%C3%A1!%20Vim%20pelo%20site." data-wa="Olá! Vim pelo site." data-evento="whatsapp-rodape" target="_blank" rel="noopener" aria-label="WhatsApp do Império Dantas"><svg aria-hidden="true" viewBox="0 0 24 24"><use href="#i-whatsapp"/></svg>WhatsApp</a>
       <a class="rodape__rede" href="https://www.instagram.com/imperioo_dantas/" target="_blank" rel="noopener" aria-label="Instagram do Império Dantas"><svg aria-hidden="true" viewBox="0 0 24 24"><use href="#i-instagram"/></svg>Instagram</a>
-      <span>Estrada do Pequiá, 1828, Vila Silviania, Carapicuíba, SP</span>
-    </div>
-    <div class="rodape__col">
-      <h2>Horário</h2>
-      <span>Terça a sábado, 09h às 20h</span>
-      <span>Domingo, 09h às 15h</span>
-      <span>Segunda, fechado</span>
-    </div>
-    <div class="rodape__col">
-      <h2>No site</h2>
-      <a href="#precos">Tabela de preços</a>
-      <a href="#trabalhos">Trabalhos</a>
-      <a href="#agendar">Monte sua visita</a>
-      <a href="#duvidas">Dúvidas</a>
+      <span>Estrada do Pequiá, 1828, Carapicuíba</span>
     </div>
     <p class="rodape__base">© <span data-ano>2026</span> Império Dantas, Salão de Beleza Unissex</p>
   </footer>
 
-  <!-- ===================== WHATSAPP: flutuante (desktop) e barra fixa (celular) ===================== -->
-  <a class="wa-flutuante" href="https://wa.me/5511945046553?text=Ol%C3%A1!%20Vim%20pelo%20site%20e%20quero%20agendar%20um%20hor%C3%A1rio." data-wa="Olá! Vim pelo site e quero agendar um horário." data-evento="whatsapp-flutuante" target="_blank" rel="noopener" aria-label="Falar no WhatsApp">
-    <svg aria-hidden="true"><use href="#i-whatsapp"/></svg>
-    <span class="wa-flutuante__rotulo">Falar no WhatsApp</span>
-  </a>
+  <!-- ===================== BARRA FIXA (celular) ===================== -->
   <div class="barra-celular">
-    <a class="barra-celular__wa" href="https://wa.me/5511945046553?text=Ol%C3%A1!%20Vim%20pelo%20site%20e%20quero%20agendar%20um%20hor%C3%A1rio." data-wa="Olá! Vim pelo site e quero agendar um horário." data-agenda data-evento="agenda-barra" target="_blank" rel="noopener">Agendar horário</a>
+    <button type="button" class="barra-celular__agendar" data-agenda>Agendar horário</button>
     <a class="barra-celular__preco" href="#precos">Preços</a>
   </div>
 
@@ -479,9 +365,9 @@
       </header>
 
       <ol class="etapas" aria-label="Passos do agendamento">
-        <li data-etapa-marca="1"><span>1</span>Serviço</li>
-        <li data-etapa-marca="2"><span>2</span>Profissional</li>
-        <li data-etapa-marca="3"><span>3</span>Data e hora</li>
+        <li data-etapa-marca="1"><span>1</span>Serviço<i class="etapas__linha" aria-hidden="true"></i></li>
+        <li data-etapa-marca="2"><span>2</span>Profissional<i class="etapas__linha" aria-hidden="true"></i></li>
+        <li data-etapa-marca="3"><span>3</span>Data e hora<i class="etapas__linha" aria-hidden="true"></i></li>
         <li data-etapa-marca="4"><span>4</span>Confirmar</li>
       </ol>
 
@@ -522,7 +408,7 @@
         </section>
 
         <section class="etapa agenda__feito" data-etapa="5" hidden>
-          <img loading="lazy" decoding="async" src="img/site/coroa.png" alt="" width="370" height="350">
+          <svg class="feito__check" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" pathLength="1"/><path d="M20 33l8 8 16-17" pathLength="1"/></svg>
           <h2 class="etapa__titulo" tabindex="-1" data-feito-titulo></h2>
           <p data-feito-texto></p>
           <a class="botao botao--claro" href="https://wa.me/5511945046553?text=Ol%C3%A1!%20Vim%20pelo%20site%20e%20quero%20agendar%20um%20hor%C3%A1rio." data-feito-wa target="_blank" rel="noopener"><svg class="icone-wa" aria-hidden="true"><use href="#i-whatsapp"/></svg><span data-feito-wa-texto>Enviar no WhatsApp</span></a>
@@ -537,9 +423,58 @@
     </form>
   </dialog>
 
+  <!-- ===================== FILA: atendimento por ordem de chegada =====================
+       Dados por js/api.js (hoje simulados). Neste aparelho fica guardado só o ID do ticket. -->
+  <dialog class="agenda fila" data-fila-dialogo aria-labelledby="fila-titulo">
+    <form class="agenda__form" novalidate>
+      <header class="agenda__topo">
+        <p class="agenda__marca"><img loading="lazy" decoding="async" src="img/site/coroa.png" alt="" width="370" height="350">Império Dantas</p>
+        <button type="button" class="agenda__fechar" data-fila-fechar aria-label="Fechar fila"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+      </header>
+
+      <div class="agenda__corpo">
+        <section class="etapa" data-fila-tela="entrar">
+          <h2 class="etapa__titulo" id="fila-titulo" tabindex="-1">Entrar na fila</h2>
+          <p class="etapa__dica">Atendimento por ordem de chegada, hoje. Quer horário garantido? <button type="button" class="fila__link" data-agenda>Agende um horário</button>.</p>
+          <p class="fila-ao-vivo" data-fila-agora></p>
+          <label class="entrada"><span>Nome</span><input name="nome" autocomplete="name" maxlength="80" required></label>
+          <label class="entrada"><span>WhatsApp</span><input name="whatsapp" type="tel" inputmode="tel" autocomplete="tel" placeholder="(11) 91234-5678" maxlength="15" required></label>
+          <label class="entrada"><span>Serviço <small>(opcional, ajuda a calcular a espera)</small></span>
+            <select name="servico"><option value="">Ainda não sei</option></select></label>
+          <p class="fila__privacidade">Na lista pública aparece só o seu primeiro nome e a inicial do sobrenome. O número fica só com o salão.</p>
+        </section>
+
+        <section class="etapa fila__ticket" data-fila-tela="ticket" hidden>
+          <h2 class="etapa__titulo" tabindex="-1">Você está na fila</h2>
+          <p class="fila__posicao" aria-live="polite"><span data-fila-posicao></span><small>sua posição</small></p>
+          <p class="fila__proximo" data-fila-proximo hidden>Você é o próximo! Venha para o salão.</p>
+          <p class="fila__espera" data-fila-espera></p>
+          <ol class="fila__lista" data-fila-lista aria-label="Fila agora"></ol>
+          <p class="etapa__dica">A lista se atualiza sozinha. Pode fechar o site: a sua posição fica guardada neste aparelho.</p>
+        </section>
+
+        <p class="agenda__erro" data-fila-erro role="alert" hidden></p>
+      </div>
+
+      <footer class="agenda__rodape">
+        <div class="fila__acoes" data-fila-acoes="entrar">
+          <button type="submit" class="botao botao--claro" data-fila-entrar>Entrar na fila</button>
+        </div>
+        <div class="fila__acoes" data-fila-acoes="ticket" hidden>
+          <button type="button" class="botao botao--contorno" data-fila-sair>Sair da fila</button>
+          <button type="button" class="botao botao--claro" data-fila-fechar>Fechar</button>
+        </div>
+        <div class="fila__acoes" data-fila-acoes="confirmar" hidden>
+          <p>Sair da fila? Você perde a sua posição.</p>
+          <button type="button" class="botao botao--contorno" data-fila-nao>Não</button>
+          <button type="button" class="botao botao--claro" data-fila-sim>Sim, sair</button>
+        </div>
+      </footer>
+    </form>
+  </dialog>
+
   <!-- Foto ampliada -->
-  <dialog class="ampliada" data-ampliada aria-label="Foto ampliada">
-    <img src="data:," width="1200" height="1600" decoding="async" alt=""><!-- preenchida pelo JS ao tocar numa foto dos Trabalhos -->
+  <dialog class="ampliada" data-ampliada aria-label="Foto ampliada"><!-- a foto é colocada pelo JS ao tocar numa foto dos Trabalhos -->
     <button type="button" class="ampliada__fechar" data-fechar aria-label="Fechar foto"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
   </dialog>
 
@@ -548,18 +483,15 @@
     <symbol id="i-whatsapp" viewBox="0 0 24 24">
       <path fill="currentColor" d="M19.05 4.91A9.82 9.82 0 0 0 12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38a9.9 9.9 0 0 0 4.74 1.21h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.91-7.01Zm-7.01 15.24h-.01a8.23 8.23 0 0 1-4.19-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.2 8.2 0 0 1-1.26-4.38c0-4.54 3.7-8.23 8.25-8.23 2.2 0 4.27.86 5.83 2.42a8.18 8.18 0 0 1 2.41 5.83c0 4.54-3.7 8.22-8.24 8.22Zm4.52-6.16c-.25-.12-1.470-.72-1.69-.81-.23-.08-.39-.12-.56.13-.16.25-.64.81-.78.97-.14.17-.29.19-.54.06-.25-.12-1.05-.39-1.99-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.02-.38.11-.51.11-.11.25-.29.37-.43.13-.15.17-.25.25-.42.08-.17.04-.31-.02-.43-.06-.12-.56-1.34-.76-1.84-.2-.48-.41-.42-.56-.43h-.48c-.17 0-.43.06-.66.31-.22.25-.86.85-.86 2.07 0 1.22.89 2.4 1.01 2.56.12.17 1.75 2.67 4.23 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.56.1.48-.07 1.47-.6 1.67-1.18.21-.58.21-1.07.14-1.18-.06-.1-.22-.16-.47-.28Z"/>
     </symbol>
+    <symbol id="i-telefone" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" d="M6.6 3.5h2.6l1.5 4.2-2 1.4a12 12 0 0 0 6.2 6.2l1.4-2 4.2 1.5v2.6a2 2 0 0 1-2.1 2A16.5 16.5 0 0 1 4.6 5.6a2 2 0 0 1 2-2.1Z"/></symbol>
     <symbol id="i-instagram" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.3" cy="6.7" r="1" fill="currentColor" stroke="none"/></g></symbol>
     <symbol id="i-conta" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="4"/><path d="M4.5 20.5c1.2-3.6 4.1-5.5 7.5-5.5s6.3 1.9 7.5 5.5"/></g></symbol>
-    <symbol id="i-agenda" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="1.5"/><path d="M3.5 10h17M8 3v4M16 3v4M8.5 14.5l2.2 2.2 4.8-4.7"/></g></symbol>
-    <symbol id="i-tesoura" viewBox="0 0 40 40"><g fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><circle cx="11" cy="29" r="4.5"/><circle cx="29" cy="29" r="4.5"/><path d="M14.2 25.8 30 6M25.8 25.8 10 6"/></g></symbol>
-    <symbol id="i-domingo" viewBox="0 0 40 40"><g fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="9" width="28" height="25" rx="1"/><path d="M6 16h28M13 5v7M27 5v7"/><path d="M20 20.5l1.6 3.2 3.5.5-2.5 2.5.6 3.5-3.2-1.7-3.2 1.7.6-3.5-2.5-2.5 3.5-.5z"/></g></symbol>
-    <symbol id="i-mensagem" viewBox="0 0 40 40"><g fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9h26v17H17l-7 6v-6H7z"/><path d="M13 16h14M13 20.5h9"/></g></symbol>
-    <symbol id="i-etiqueta" viewBox="0 0 40 40"><g fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"><path d="M21 6h12v12L18.5 32.5a2 2 0 0 1-2.8 0l-8.2-8.2a2 2 0 0 1 0-2.8z"/><circle cx="27.5" cy="11.5" r="2"/></g></symbol>
   </svg>
 
-  <!-- GSAP + ScrollTrigger: animação da seção Trabalhos da casa -->
+  <!-- GSAP + ScrollTrigger: animações do título, da seção Trabalhos, das dúvidas e do agendamento -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
+  <script src="js/api.js" defer></script>
   <script src="js/main.js" defer></script>
 </body>
 </html>
