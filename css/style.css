@@ -93,7 +93,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
    ===================================================================== */
 .intro {
   position: fixed; inset: 0; z-index: 300; display: grid; place-items: center;
-  background: var(--preto); cursor: pointer;
+  background: var(--preto); pointer-events: none; /* o toque passa: o JS tira a abertura no primeiro toque */
   animation: intro-sai .25s var(--entra) .95s forwards;
 }
 .intro.intro--sai { animation: intro-sai .2s var(--entra) forwards; }
@@ -243,7 +243,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   padding: 12px 0; min-height: 56px; text-decoration: none;
   border-bottom: 1px dashed var(--linha-escura);
 }
-.quadro__nome { transition: transform .2s var(--sai); }
+@media (hover: hover) { .quadro__nome { transition: transform .2s var(--sai); } } /* no celular o GSAP move o nome com a rolagem */
 .quadro__grupo button:active { background: rgba(185,189,195,.08); }
 .quadro__nome { grid-area: nome; font-weight: 600; }
 .quadro__tempo { grid-area: tempo; font-size: var(--t-xs); color: var(--texto-escuro-2); }

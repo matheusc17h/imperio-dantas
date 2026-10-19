@@ -257,8 +257,10 @@ const entradaTopo = (function () {
 })();
 const iniciarTopo = () => entradaTopo?.play();
 if (intro && comIntro) {
+  // a abertura não segura o toque: o primeiro toque em qualquer lugar a tira e já vale
+  // (ex.: tocar no menu durante a abertura abre o menu)
   const pular = () => { intro.classList.add('intro--sai'); iniciarTopo(); };
-  intro.addEventListener('click', pular);
+  addEventListener('pointerdown', pular, { once: true, capture: true });
   addEventListener('keydown', pular, { once: true });
   // o CSS tira a abertura em 0,95s; o topo começa a entrar junto com a saída
   setTimeout(iniciarTopo, Math.max(0, 950 - performance.now()));
@@ -285,6 +287,8 @@ if (botaoMenu && menu) {
   const fechar = () => definir(false);
   botaoMenu.addEventListener('click', () => definir(!aberto));
   menu.querySelectorAll('a').forEach((a) => a.addEventListener('click', fechar));
+  // tocar fora do painel (logo, botões de agendar, barra de baixo) também fecha e destrava a página
+  document.addEventListener('click', (e) => { if (aberto && !e.target.closest('[data-menu], #menu')) fechar(); });
   addEventListener('keydown', (e) => { if (e.key === 'Escape') fechar(); });
   matchMedia('(min-width: 960px)').addEventListener('change', (e) => { if (e.matches) fechar(); });
 }
@@ -294,10 +298,32 @@ if (botaoMenu && menu) {
   const placa = document.querySelector('.quadro__placa');
   if (!placa || !comMovimento() || !window.ScrollTrigger) return;
   gsap.registerPlugin(ScrollTrigger);
-  const itens = [...placa.querySelectorAll('.quadro__topo > *, .quadro__grupo'), placa.querySelector('.quadro__glossario')];
-  gsap.timeline({ defaults: { ease: ENTRA }, scrollTrigger: { trigger: placa, start: 'top 88%', once: true } })
-    .from(placa, { opacity: 0, duration: 0.3, clearProps: 'opacity' })
-    .from(itens, { y: 16, opacity: 0, duration: 0.45, stagger: cascata(), clearProps: 'transform,opacity' }, 0.08);
+  const topo = placa.querySelectorAll('.quadro__topo > *');
+  const grupos = [...placa.querySelectorAll('.quadro__grupo')];
+  const glossario = placa.querySelector('.quadro__glossario');
+  gsap.matchMedia().add({ desk: '(min-width: 960px)', mob: '(max-width: 959px)' }, (ctx) => {
+    const entrada = gsap.timeline({ defaults: { ease: ENTRA }, scrollTrigger: { trigger: placa, start: 'top 88%', once: true } })
+      .from(placa, { opacity: 0, duration: 0.3, clearProps: 'opacity' });
+    if (ctx.conditions.desk) {
+      // desktop: a placa inteira cabe na tela, então tudo entra junto em cascata curta
+      entrada.from([...topo, ...grupos, glossario], { y: 16, opacity: 0, duration: 0.45, stagger: cascata(), clearProps: 'transform,opacity' }, 0.08);
+      return;
+    }
+    // celular: a placa é bem mais alta que a tela. O topo entra com ela; depois cada linha
+    // acompanha a barra de rolagem (exceção pedida à regra "nada preso ao scroll no celular"):
+    // nome e tempo vêm da esquerda, o preço da direita, e tudo volta se a pessoa rolar para cima
+    entrada.from(topo, { y: 16, opacity: 0, duration: 0.45, stagger: cascata(), clearProps: 'transform,opacity' }, 0.08);
+    const rolagem = (alvo) => ({ trigger: alvo, start: 'top 96%', end: 'top 72%', scrub: 0.4, invalidateOnRefresh: true });
+    placa.querySelectorAll('.quadro__grupo h3').forEach((h3) => {
+      gsap.fromTo(h3, { y: 16, opacity: 0 }, { y: 0, opacity: 1, ease: 'none', scrollTrigger: rolagem(h3) });
+    });
+    placa.querySelectorAll('.quadro__grupo li').forEach((li) => {
+      gsap.timeline({ defaults: { ease: 'none' }, scrollTrigger: rolagem(li) })
+        .fromTo(li.querySelectorAll('.quadro__nome, .quadro__tempo'), { x: -24, opacity: 0 }, { x: 0, opacity: 1 }, 0)
+        .fromTo(li.querySelector('.quadro__preco'), { x: 24, opacity: 0 }, { x: 0, opacity: 1 }, 0);
+    });
+    revelar(glossario, [glossario]);
+  });
 })();
 
 /* ---------- Foto do topo: efeito "tilted card" (adaptado do React Bits com GSAP) ----------
