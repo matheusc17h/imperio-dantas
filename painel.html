@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Painel · Império Dantas</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#000000">
+  <link rel="icon" href="favicon.ico" sizes="48x48">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Manrope:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="css/painel.css">
+</head>
+<body class="painel carregando">
+  <a class="pular" href="#principal">Pular para o conteúdo</a>
+
+  <!-- ===================== MENU LATERAL (gaveta no celular e tablet) ===================== -->
+  <aside class="lateral" id="lateral" aria-label="Menu do painel">
+    <div class="lateral__topo">
+      <a class="marca" href="index.html" aria-label="Império Dantas, ir para o site">
+        <img src="img/site/coroa.png" alt="" width="370" height="350">
+        <span><small>Império</small>Dantas</span>
+      </a>
+      <button type="button" class="icone-bt lateral__fechar" data-menu-fechar aria-label="Fechar menu">
+        <svg aria-hidden="true"><use href="#i-x"/></svg>
+      </button>
+    </div>
+    <nav class="menu" aria-label="Seções">
+      <a href="#inicio" data-secao-link="inicio" data-so-admin><svg aria-hidden="true"><use href="#i-grade"/></svg>Visão geral</a>
+      <a href="#agenda" data-secao-link="agenda"><svg aria-hidden="true"><use href="#i-agenda"/></svg>Agenda</a>
+      <a href="#atendimentos" data-secao-link="atendimentos" data-so-admin><svg aria-hidden="true"><use href="#i-tesoura"/></svg>Atendimentos</a>
+      <a href="#horarios" data-secao-link="horarios" data-so-admin><svg aria-hidden="true"><use href="#i-relogio"/></svg>Horários</a>
+      <a href="#precos" data-secao-link="precos" data-so-admin><svg aria-hidden="true"><use href="#i-etiqueta"/></svg>Preços</a>
+      <a href="#equipe" data-secao-link="equipe" data-so-admin><svg aria-hidden="true"><use href="#i-equipe"/></svg>Equipe</a>
+    </nav>
+    <div class="lateral__pe">
+      <a class="botao botao--contorno botao--bloco" href="index.html"><svg aria-hidden="true"><use href="#i-site"/></svg>Ver o site</a>
+      <div class="eu">
+        <span class="avatar" data-eu-avatar aria-hidden="true"></span>
+        <span class="eu__txt"><strong data-eu-nome></strong><small data-eu-papel></small></span>
+        <button type="button" class="icone-bt" data-sair aria-label="Sair da conta"><svg aria-hidden="true"><use href="#i-sair"/></svg></button>
+      </div>
+    </div>
+  </aside>
+  <div class="veu" data-menu-fechar aria-hidden="true"></div>
+
+  <!-- ===================== CONTEÚDO ===================== -->
+  <div class="miolo">
+    <header class="barra">
+      <button type="button" class="icone-bt barra__menu" data-menu-abrir aria-label="Abrir menu" aria-controls="lateral" aria-expanded="false">
+        <svg aria-hidden="true"><use href="#i-menu"/></svg>
+      </button>
+      <div class="barra__titulo">
+        <h1 data-titulo tabindex="-1">Visão geral</h1>
+        <p data-subtitulo></p>
+      </div>
+      <button type="button" class="botao botao--claro barra__lancar" data-lancar-abrir data-so-admin>
+        <svg aria-hidden="true"><use href="#i-mais"/></svg><span>Lançar atendimento</span>
+      </button>
+    </header>
+
+    <main id="principal" class="secoes">
+      <!-- ---------- VISÃO GERAL ---------- -->
+      <section class="secao" data-secao="inicio" aria-label="Visão geral" hidden>
+        <div class="cartoes" data-cartoes>
+          <article class="cartao cartao--destaque"><p class="cartao__rotulo">Hoje</p><p class="cartao__valor" data-c="hoje-valor">R$ 0</p><p class="cartao__pe"><span class="delta" data-c="hoje-delta"></span><span data-c="hoje-pe">comparado a ontem</span></p></article>
+          <article class="cartao"><p class="cartao__rotulo">Esta semana</p><p class="cartao__valor" data-c="semana-valor">R$ 0</p><p class="cartao__pe"><span class="delta" data-c="semana-delta"></span><span data-c="semana-pe">comparado à semana passada</span></p></article>
+          <article class="cartao"><p class="cartao__rotulo">Este mês</p><p class="cartao__valor" data-c="mes-valor">R$ 0</p><p class="cartao__pe"><span class="delta" data-c="mes-delta"></span><span data-c="mes-pe">comparado ao mês passado</span></p></article>
+          <article class="cartao"><p class="cartao__rotulo">Atendimentos no mês</p><p class="cartao__valor" data-c="qtd-valor">0</p><p class="cartao__pe"><span class="delta" data-c="qtd-delta"></span><span data-c="qtd-pe">ticket médio</span></p></article>
+        </div>
+
+        <div class="duas">
+          <article class="bloco bloco--grafico">
+            <header class="bloco__topo">
+              <h2>Faturamento</h2>
+              <div class="segmento" role="tablist" aria-label="Tipo de gráfico">
+                <button type="button" role="tab" aria-selected="true" data-graf-modo="meses">Mês a mês</button>
+                <button type="button" role="tab" aria-selected="false" data-graf-modo="comparar">Comparar meses</button>
+              </div>
+            </header>
+            <div class="comparar" data-comparar hidden>
+              <label class="campo campo--mini"><span><i class="ponto ponto--a"></i>Mês</span><select data-mes-a></select></label>
+              <label class="campo campo--mini"><span><i class="ponto ponto--b"></i>Comparar com</span><select data-mes-b></select></label>
+            </div>
+            <div class="grafico" data-grafico role="img" aria-label="Gráfico de faturamento"></div>
+            <p class="grafico__legenda" data-grafico-legenda aria-live="polite"></p>
+          </article>
+
+          <article class="bloco">
+            <header class="bloco__topo"><h2>Mais feitos no mês</h2></header>
+            <ul class="barras" data-ranking></ul>
+            <header class="bloco__topo bloco__topo--sub"><h2>Por profissional</h2></header>
+            <ul class="pessoas" data-por-profissional></ul>
+          </article>
+        </div>
+
+        <article class="bloco">
+          <header class="bloco__topo">
+            <h2>Agenda de hoje</h2>
+            <a class="botao botao--contorno botao--p" href="#agenda">Ver agenda</a>
+          </header>
+          <div data-agenda-hoje></div>
+        </article>
+      </section>
+
+      <!-- ---------- AGENDA ---------- -->
+      <section class="secao" data-secao="agenda" aria-label="Agenda" hidden>
+        <article class="bloco">
+          <header class="bloco__topo bloco__topo--quebra">
+            <div class="dia-nav">
+              <button type="button" class="icone-bt" data-dia="-1" aria-label="Dia anterior"><svg aria-hidden="true"><use href="#i-esq"/></svg></button>
+              <label class="dia-nav__data"><span class="sr">Dia</span><input type="date" data-dia-input></label>
+              <button type="button" class="icone-bt" data-dia="1" aria-label="Próximo dia"><svg aria-hidden="true"><use href="#i-dir"/></svg></button>
+              <button type="button" class="botao botao--contorno botao--p" data-dia="0">Hoje</button>
+            </div>
+            <button type="button" class="botao botao--contorno botao--p" data-bloquear-abrir data-so-admin><svg aria-hidden="true"><use href="#i-pausa"/></svg>Pausa ou folga</button>
+          </header>
+          <p class="bloco__resumo" data-agenda-resumo></p>
+          <div data-agenda-lista></div>
+          <div data-bloqueios-lista></div>
+        </article>
+      </section>
+
+      <!-- ---------- ATENDIMENTOS ---------- -->
+      <section class="secao" data-secao="atendimentos" aria-label="Atendimentos" hidden>
+        <article class="bloco">
+          <header class="bloco__topo bloco__topo--quebra">
+            <div class="segmento" role="tablist" aria-label="Período">
+              <button type="button" role="tab" aria-selected="true" data-periodo="hoje">Hoje</button>
+              <button type="button" role="tab" aria-selected="false" data-periodo="7">7 dias</button>
+              <button type="button" role="tab" aria-selected="false" data-periodo="mes">Este mês</button>
+              <button type="button" role="tab" aria-selected="false" data-periodo="passado">Mês passado</button>
+            </div>
+          </header>
+          <dl class="totais" data-at-totais></dl>
+          <div data-at-lista></div>
+        </article>
+      </section>
+
+      <!-- ---------- HORÁRIOS ---------- -->
+      <section class="secao" data-secao="horarios" aria-label="Horários" hidden>
+        <form class="bloco" data-form-horarios novalidate>
+          <header class="bloco__topo"><h2>Horário de funcionamento</h2></header>
+          <p class="bloco__dica">A pausa fixa vale toda semana naquele dia (ex.: almoço das 16h às 17h). Para parar num dia só, use o botão "Pausa ou folga" na <a href="#agenda">Agenda</a>.</p>
+          <div class="semana" data-semana></div>
+          <footer class="bloco__acoes"><button type="submit" class="botao botao--claro">Salvar horários</button></footer>
+        </form>
+      </section>
+
+      <!-- ---------- PREÇOS ---------- -->
+      <section class="secao" data-secao="precos" aria-label="Preços" hidden>
+        <form class="bloco" data-form-precos novalidate>
+          <header class="bloco__topo"><h2>Preços e tempos</h2></header>
+          <p class="bloco__dica">O que mudar aqui aparece na tabela de preços do site e no agendamento em até 1 minuto. Atendimentos já feitos continuam com o valor da época.</p>
+          <div class="precos" data-precos></div>
+          <footer class="bloco__acoes"><button type="submit" class="botao botao--claro">Salvar preços</button></footer>
+        </form>
+      </section>
+
+      <!-- ---------- EQUIPE ---------- -->
+      <section class="secao" data-secao="equipe" aria-label="Equipe" hidden>
+        <div class="equipe" data-equipe></div>
+        <form class="bloco" data-form-membro novalidate>
+          <header class="bloco__topo"><h2>Adicionar barbeiro</h2></header>
+          <p class="bloco__dica">Crie o acesso com e-mail e uma senha provisória e passe para a pessoa. Ela entra em <strong>Entrar</strong>, no site, e no primeiro acesso o site pede para ela criar a própria senha.</p>
+          <div class="grade-campos">
+            <label class="campo"><span>Nome (como aparece no site)</span><input name="nome" autocomplete="off" maxlength="80" required></label>
+            <label class="campo"><span>E-mail</span><input name="email" type="email" autocomplete="off" maxlength="160" required></label>
+            <label class="campo"><span>Senha provisória</span><input name="senha" type="text" autocomplete="new-password" minlength="8" maxlength="200" required><small>Pelo menos 8 caracteres.</small></label>
+            <label class="campo"><span>Atende no site</span><select name="area"><option value="masculino">Cabelo masculino</option><option value="feminino">Cabelo feminino</option><option value="ambos">Os dois</option></select></label>
+            <label class="troca"><input type="checkbox" name="atende" checked><span class="troca__bola" aria-hidden="true"></span>Aparece no agendamento do site</label>
+          </div>
+          <footer class="bloco__acoes"><button type="submit" class="botao botao--claro"><svg aria-hidden="true"><use href="#i-mais"/></svg>Criar acesso</button></footer>
+        </form>
+      </section>
+
+      <div class="carregando__aviso" data-carregando><span class="giro" aria-hidden="true"></span>Carregando…</div>
+    </main>
+  </div>
+
+  <!-- ===================== LANÇAR ATENDIMENTO ===================== -->
+  <dialog class="modal" data-lancar aria-labelledby="lancar-titulo">
+    <form method="dialog" class="modal__form" data-form-lancar novalidate>
+      <header class="modal__topo">
+        <h2 id="lancar-titulo">Lançar atendimento</h2>
+        <button type="button" class="icone-bt" data-modal-fechar aria-label="Fechar"><svg aria-hidden="true"><use href="#i-x"/></svg></button>
+      </header>
+      <div class="modal__corpo">
+        <label class="campo"><span>Serviço</span><select name="servico" required></select></label>
+        <div class="campo">
+          <span id="qtd-rotulo">Quantos</span>
+          <div class="contador" role="group" aria-labelledby="qtd-rotulo">
+            <button type="button" class="icone-bt" data-qtd="-1" aria-label="Menos um"><svg aria-hidden="true"><use href="#i-menos"/></svg></button>
+            <input name="quantidade" type="number" inputmode="numeric" min="1" max="30" value="1" aria-labelledby="qtd-rotulo">
+            <button type="button" class="icone-bt" data-qtd="1" aria-label="Mais um"><svg aria-hidden="true"><use href="#i-mais"/></svg></button>
+          </div>
+        </div>
+        <label class="campo"><span>Quem atendeu</span><select name="profissional" required></select></label>
+        <div class="grade-campos grade-campos--2">
+          <label class="campo"><span>Dia</span><input name="data" type="date" required></label>
+          <label class="campo"><span>Valor de cada (R$)</span><input name="valor" type="number" inputmode="numeric" min="0" max="10000" step="1" required></label>
+        </div>
+        <p class="modal__total" data-lancar-total aria-live="polite"></p>
+        <p class="aviso aviso--erro" data-lancar-erro role="alert" hidden></p>
+      </div>
+      <footer class="modal__acoes">
+        <button type="button" class="botao botao--contorno" data-modal-fechar>Cancelar</button>
+        <button type="submit" class="botao botao--claro" data-lancar-salvar>Lançar</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <!-- ===================== PAUSA OU FOLGA (num dia só) ===================== -->
+  <dialog class="modal" data-bloquear aria-labelledby="bloquear-titulo">
+    <form method="dialog" class="modal__form" data-form-bloquear novalidate>
+      <header class="modal__topo">
+        <h2 id="bloquear-titulo">Pausa ou folga</h2>
+        <button type="button" class="icone-bt" data-modal-fechar aria-label="Fechar"><svg aria-hidden="true"><use href="#i-x"/></svg></button>
+      </header>
+      <div class="modal__corpo">
+        <p class="bloco__dica">Nesse intervalo o site mostra os horários riscados e ninguém consegue marcar.</p>
+        <label class="campo"><span>Dia</span><input name="data" type="date" required></label>
+        <label class="troca"><input type="checkbox" name="diaInteiro"><span class="troca__bola" aria-hidden="true"></span>O dia inteiro</label>
+        <div class="grade-campos grade-campos--2" data-bloq-horas>
+          <label class="campo"><span>Das</span><input name="inicio" type="time" step="300" value="16:00"></label>
+          <label class="campo"><span>Até</span><input name="fim" type="time" step="300" value="17:00"></label>
+        </div>
+        <label class="campo"><span>Para quem</span><select name="profissional"></select></label>
+        <label class="campo"><span>Motivo (opcional, só a equipe vê)</span><input name="motivo" maxlength="80" placeholder="Ex.: almoço, médico"></label>
+        <p class="aviso aviso--erro" data-bloquear-erro role="alert" hidden></p>
+      </div>
+      <footer class="modal__acoes">
+        <button type="button" class="botao botao--contorno" data-modal-fechar>Cancelar</button>
+        <button type="submit" class="botao botao--claro">Bloquear</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <input type="file" accept="image/*" data-foto-arquivo hidden>
+  <div class="toast" data-toast role="status" aria-live="polite"></div>
+
+  <!-- ===================== ÍCONES ===================== -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <symbol id="i-grade" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></g></symbol>
+      <symbol id="i-agenda" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></g></symbol>
+      <symbol id="i-tesoura" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="6.5" cy="7" r="2.8"/><circle cx="6.5" cy="17" r="2.8"/><path d="M8.8 8.6 20 18M8.8 15.4 20 6"/></g></symbol>
+      <symbol id="i-relogio" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></g></symbol>
+      <symbol id="i-etiqueta" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M3.5 12.6V4.5a1 1 0 0 1 1-1h8.1l8 8a1.4 1.4 0 0 1 0 2l-7.1 7.1a1.4 1.4 0 0 1-2 0z"/><circle cx="8" cy="8" r="1.3"/></g></symbol>
+      <symbol id="i-equipe" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="9" cy="8.5" r="3.5"/><path d="M2.5 19.5c.9-3.1 3.4-4.8 6.5-4.8s5.6 1.7 6.5 4.8M16 5.2a3.5 3.5 0 0 1 0 6.6M18.2 14.9c1.6.7 2.7 2.3 3.3 4.6"/></g></symbol>
+      <symbol id="i-site" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></g></symbol>
+      <symbol id="i-sair" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 16l-4-4 4-4M6 12h10"/></g></symbol>
+      <symbol id="i-menu" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M4 7h16M4 12h16M4 17h10"/></symbol>
+      <symbol id="i-x" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M6 6l12 12M18 6 6 18"/></symbol>
+      <symbol id="i-mais" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M12 5v14M5 12h14"/></symbol>
+      <symbol id="i-menos" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M5 12h14"/></symbol>
+      <symbol id="i-esq" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M15 5l-7 7 7 7"/></symbol>
+      <symbol id="i-dir" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></symbol>
+      <symbol id="i-moeda" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="2.5" y="6" width="19" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/><path d="M6 9.5v5M18 9.5v5"/></g></symbol>
+      <symbol id="i-grafico" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5h16"/><path d="M5 15l4.5-4.5 3.5 3 6-6.5"/><path d="M15 7h4v4"/></g></symbol>
+      <symbol id="i-pausa" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M10 9v6M14 9v6"/></g></symbol>
+      <symbol id="i-lixo" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 7h15M9.5 7V4.5h5V7M6.5 7l.8 12.2a1.5 1.5 0 0 0 1.5 1.3h6.4a1.5 1.5 0 0 0 1.5-1.3L17.5 7"/></g></symbol>
+      <symbol id="i-camera" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M4 8.5a1.5 1.5 0 0 1 1.5-1.5h2.2l1.5-2.2h5.6l1.5 2.2h2.2A1.5 1.5 0 0 1 20 8.5v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 17.5z"/><circle cx="12" cy="12.8" r="3.3"/></g></symbol>
+      <symbol id="i-whatsapp" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2.2A9.7 9.7 0 0 0 3.7 16.9L2.3 21.8l5-1.3A9.7 9.7 0 1 0 12 2.2Zm0 17.7a8 8 0 0 1-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1 1 12 19.9Zm4.4-6c-.2-.1-1.4-.7-1.7-.8-.2-.1-.4-.1-.5.1l-.8.9c-.1.2-.3.2-.5.1a6.6 6.6 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.5-.4h-.5a.9.9 0 0 0-.7.3 2.8 2.8 0 0 0-.9 2.1 4.9 4.9 0 0 0 1 2.6 11.2 11.2 0 0 0 4.3 3.8c1.6.7 2.2.7 3 .6a2.6 2.6 0 0 0 1.7-1.2 2.1 2.1 0 0 0 .2-1.2c-.1-.1-.2-.2-.5-.3Z"/></symbol>
+    </defs>
+  </svg>
+
+  <script src="js/painel.js" defer></script>
+</body>
+</html>

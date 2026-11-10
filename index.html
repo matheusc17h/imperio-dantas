@@ -9,6 +9,7 @@
   <meta name="theme-color" content="#000000">
 
   <link rel="icon" href="favicon.ico" sizes="48x48">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="icon" href="favicon-512.png" type="image/png" sizes="512x512">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
 
@@ -36,12 +37,14 @@
   <!-- Imagem do hero carregada primeiro (LCP) -->
   <link rel="preload" as="image" href="img/site/salao-interior-1000.webp"
         imagesrcset="img/site/salao-interior-640.webp 640w, img/site/salao-interior-1000.webp 1000w, img/site/salao-interior-1400.webp 1400w"
-        imagesizes="(min-width: 960px) 44vw, 100vw">
+        imagesizes="(min-width: 960px) 44vw, min(100vw, 480px)">
 
   <link rel="stylesheet" href="css/style.css">
   <script src="js/intro.js"></script>
 
-  <!-- Dados estruturados: salão. Preços e horários iguais ao quadro de preços da página -->
+  <!-- Dados estruturados: salão. Preços e horários iguais ao quadro de preços da página.
+       FICTÍCIO: Corte feminino, Escova, Hidratação, Cauterização, Selagem, Alisamento, Coloração, Mechas e
+       Morena iluminada (trocar junto com a tabela) -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -85,7 +88,16 @@
         { "@type": "Offer", "price": "25", "priceCurrency": "BRL", "itemOffered": { "@type": "Service", "name": "Barba" } },
         { "@type": "Offer", "price": "15", "priceCurrency": "BRL", "itemOffered": { "@type": "Service", "name": "Limpeza de pele" } },
         { "@type": "Offer", "price": "30", "priceCurrency": "BRL", "itemOffered": { "@type": "Service", "name": "Limpeza completa" } },
-        { "@type": "Offer", "price": "30", "priceCurrency": "BRL", "itemOffered": { "@type": "Service", "name": "Penteados" } }
+        { "@type": "Offer", "price": "30", "priceCurrency": "BRL", "itemOffered": { "@type": "Service", "name": "Penteados" } },
+        { "@type": "Offer", "price": "50", "priceCurrency": "BRL", "itemOffered": { "@type": "Service", "name": "Corte feminino" } },
+        { "@type": "Offer", "price": "40", "priceCurrency": "BRL", "itemOffered": { "@type": "Service", "name": "Escova" } },
+        { "@type": "Offer", "price": "45", "priceCurrency": "BRL", "itemOffered": { "@type": "Service", "name": "Hidratação" } },
+        { "@type": "Offer", "price": "90", "priceCurrency": "BRL", "itemOffered": { "@type": "Service", "name": "Coloração" } },
+        { "@type": "Offer", "price": "150", "priceCurrency": "BRL", "itemOffered": { "@type": "Service", "name": "Mechas" } },
+        { "@type": "Offer", "price": "80", "priceCurrency": "BRL", "itemOffered": { "@type": "Service", "name": "Cauterização" } },
+        { "@type": "Offer", "price": "120", "priceCurrency": "BRL", "itemOffered": { "@type": "Service", "name": "Selagem" } },
+        { "@type": "Offer", "price": "150", "priceCurrency": "BRL", "itemOffered": { "@type": "Service", "name": "Alisamento" } },
+        { "@type": "Offer", "price": "280", "priceCurrency": "BRL", "itemOffered": { "@type": "Service", "name": "Morena iluminada" } }
       ]
     }
   }
@@ -95,7 +107,7 @@
     "@context": "https://schema.org",
     "@type": "FAQPage",
     "mainEntity": [
-      { "@type": "Question", "name": "Precisa agendar?", "acceptedAnswer": { "@type": "Answer", "text": "É o melhor caminho para garantir o horário. Toque em Agendar horário e siga os 4 passos: escolha o serviço, o profissional, o dia e o horário, e confirme com seu nome e telefone. Para ser atendido hoje sem hora marcada, use Entrar na fila." } },
+      { "@type": "Question", "name": "Precisa agendar?", "acceptedAnswer": { "@type": "Answer", "text": "É o melhor caminho para garantir o horário. Toque em Agendar horário e siga os 4 passos: escolha o serviço, o profissional, o dia e o horário, e confirme com seu e-mail e senha (na primeira vez, você cria a conta ali mesmo). Para ser atendido hoje sem hora marcada, use Entrar na fila." } },
       { "@type": "Question", "name": "Qual a diferença entre agendar e entrar na fila?", "acceptedAnswer": { "@type": "Answer", "text": "O agendamento garante o seu horário: você escolhe o dia e a hora e chega na hora marcada. A fila é por ordem de chegada, para quem quer ser atendido no mesmo dia: você entra pelo site, acompanha a sua posição e vem para o salão quando estiver perto da sua vez." } },
       { "@type": "Question", "name": "Atende cabelo feminino?", "acceptedAnswer": { "@type": "Answer", "text": "Sim. O Império Dantas é um salão de beleza unissex: corte, química, limpeza de pele e penteados para todos." } }
     ]
@@ -132,12 +144,16 @@
       <a href="#duvidas">Dúvidas</a>
       <a href="#horario">Horário</a>
     </nav>
+    <a class="nav__conta" href="entrar.html" data-conta-link aria-label="Entrar na sua conta"><span class="nav__conta-icone" data-conta-icone aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-conta"/></svg></span><span class="nav__conta-txt" data-conta-txt>Entrar</span></a>
     <button type="button" class="botao botao--claro nav__cta" data-agenda>Agendar horário</button>
     <button class="nav__menu" type="button" aria-expanded="false" aria-controls="menu" aria-label="Abrir menu" data-menu><span></span><span></span></button>
   </header>
 
   <main id="conteudo">
 
+    <!-- Sobreposição (computador): a primeira dobra fica parada e a tabela de preços sobe por cima dela.
+         O invólucro termina junto com a tabela, então o topo só fica parado até ela cobrir tudo. -->
+    <div class="sobrepor">
     <!-- Primeira dobra: o hero ocupa exatamente a tela no desktop -->
     <div class="dobra">
     <!-- ===================== HERO ===================== -->
@@ -159,7 +175,7 @@
         <a class="hero__precos" href="#precos">Ver tabela de preços</a>
         <dl class="hero__fatos">
           <div><dt>Domingo</dt><dd>aberto das 09h às 15h</dd></div>
-          <div><dt>R$ 15 a R$ 130</dt><dd>12 serviços com preço fechado</dd></div>
+          <div><dt data-faixa-precos>R$ 15 a R$ 280</dt><dd><span data-qtd-servicos>21</span> serviços com preço fechado</dd></div>
         </dl>
         <!-- PREENCHER e remover "hidden": nota real do Google
         <p class="hero__google" hidden><strong>[NOTA]</strong> no Google, [Nº AVALIAÇÕES] avaliações</p> -->
@@ -169,7 +185,7 @@
         <div class="tilt__miolo">
         <img decoding="async" src="img/site/salao-interior-1000.webp"
              srcset="img/site/salao-interior-640.webp 640w, img/site/salao-interior-1000.webp 1000w, img/site/salao-interior-1400.webp 1400w"
-             sizes="(min-width: 960px) 44vw, 100vw"
+             sizes="(min-width: 960px) 44vw, min(100vw, 480px)"
              width="1000" height="1244" fetchpriority="high"
              alt="Interior do salão Império Dantas com espelhos redondos, ring light, ripado de madeira e cadeiras pretas">
         </div>
@@ -189,37 +205,72 @@
           <img loading="lazy" decoding="async" src="img/site/coroa.png" alt="" width="370" height="350">
           <h2>Tabela de preços</h2>
           <p>Preço fechado e tempo médio de cada serviço. Toque em um serviço para agendar.</p>
+          <div class="area-troca" role="group" aria-label="Tipo de cabelo">
+            <button type="button" data-area-escolher="masculino" aria-pressed="true">Cabelo masculino</button>
+            <button type="button" data-area-escolher="feminino" aria-pressed="false">Cabelo feminino</button>
+          </div>
         </header>
 
-        <div class="quadro__grupos">
-          <div class="quadro__grupo">
-            <h3>Cortes</h3>
-            <ul>
-              <li id="corte-social"><button type="button" data-servico="Corte social" data-preco="30" data-min="30"><span class="quadro__nome">Corte social</span><span class="quadro__tempo">30 min</span><span class="quadro__preco">R$ 30</span></button></li>
-              <li id="corte-degrade"><button type="button" data-servico="Corte degradê" data-preco="35" data-min="35"><span class="quadro__nome">Corte degradê</span><span class="quadro__tempo">35 min</span><span class="quadro__preco">R$ 35</span></button></li>
-              <li id="corte-navalhado"><button type="button" data-servico="Corte navalhado" data-preco="40" data-min="40"><span class="quadro__nome">Corte navalhado</span><span class="quadro__tempo">40 min</span><span class="quadro__preco">R$ 40</span></button></li>
-            </ul>
+        <!-- Cada serviço tem data-area: "masculino", "feminino" ou "ambos" (aparece nos dois lados).
+             O interruptor "Cabelo masculino | Cabelo feminino" mostra só o lado escolhido. -->
+        <div class="quadro__grupos" data-area-conteudo>
+          <!-- coluna 1: cortes (masculino) | cortes, escova e tratamentos (feminino) -->
+          <div class="quadro__grupo" data-area="ambos">
+            <div data-area="masculino">
+              <h3>Cortes</h3>
+              <ul>
+  <li id="corte-social" data-area="masculino"><button type="button" data-servico="Corte social" data-preco="30" data-min="30"><span class="quadro__nome">Corte social</span><span class="quadro__tempo">30 min</span><span class="quadro__preco">R$ 30</span></button></li>
+  <li id="corte-degrade" data-area="masculino"><button type="button" data-servico="Corte degradê" data-preco="35" data-min="35"><span class="quadro__nome">Corte degradê</span><span class="quadro__tempo">35 min</span><span class="quadro__preco">R$ 35</span></button></li>
+  <li id="corte-navalhado" data-area="masculino"><button type="button" data-servico="Corte navalhado" data-preco="40" data-min="40"><span class="quadro__nome">Corte navalhado</span><span class="quadro__tempo">40 min</span><span class="quadro__preco">R$ 40</span></button></li>
+              </ul>
+            </div>
+            <div data-area="feminino">
+              <h3>Cortes e escova</h3>
+              <ul>
+  <li id="corte-feminino" data-area="feminino"><button type="button" data-servico="Corte feminino" data-preco="50" data-min="45"><span class="quadro__nome">Corte feminino</span><span class="quadro__tempo">45 min</span><span class="quadro__preco">R$ 50</span></button></li> <!-- FICTÍCIO: trocar nome, preço e tempo -->
+  <li id="escova" data-area="feminino"><button type="button" data-servico="Escova" data-preco="40" data-min="40"><span class="quadro__nome">Escova</span><span class="quadro__tempo">40 min</span><span class="quadro__preco">R$ 40</span></button></li> <!-- FICTÍCIO: trocar nome, preço e tempo -->
+              </ul>
+              <h3>Tratamentos</h3>
+              <ul>
+  <li id="hidratacao" data-area="feminino"><button type="button" data-servico="Hidratação" data-preco="45" data-min="40"><span class="quadro__nome">Hidratação</span><span class="quadro__tempo">40 min</span><span class="quadro__preco">R$ 45</span></button></li> <!-- FICTÍCIO: trocar nome, preço e tempo -->
+  <li id="cauterizacao" data-area="feminino"><button type="button" data-servico="Cauterização" data-preco="80" data-min="60"><span class="quadro__nome">Cauterização</span><span class="quadro__tempo">60 min</span><span class="quadro__preco">R$ 80</span></button></li> <!-- FICTÍCIO: trocar nome, preço e tempo -->
+  <li id="selagem" data-area="feminino"><button type="button" data-servico="Selagem" data-preco="120" data-min="120"><span class="quadro__nome">Selagem</span><span class="quadro__tempo">120 min</span><span class="quadro__preco">R$ 120</span></button></li> <!-- FICTÍCIO: trocar nome, preço e tempo -->
+              </ul>
+            </div>
           </div>
-          <div class="quadro__grupo">
+          <!-- coluna 2: química (a maior parte vale para os dois) -->
+          <div class="quadro__grupo" data-area="ambos">
             <h3>Química</h3>
             <ul>
-              <li id="relaxamento"><button type="button" data-servico="Relaxamento" data-preco="30" data-min="20"><span class="quadro__nome">Relaxamento</span><span class="quadro__tempo">20 min</span><span class="quadro__preco">R$ 30</span></button></li><!-- TODO: confirmar tempo real com o dono (Relaxamento) -->
-              <li id="progressiva"><button type="button" data-servico="Progressiva" data-preco="85" data-min="40"><span class="quadro__nome">Progressiva</span><span class="quadro__tempo">40 min</span><span class="quadro__preco">R$ 85</span></button></li><!-- TODO: confirmar tempo real com o dono (Progressiva) -->
-              <li id="botox"><button type="button" data-servico="Botox" data-preco="70" data-min="40"><span class="quadro__nome">Botox</span><span class="quadro__tempo">40 min</span><span class="quadro__preco">R$ 70</span></button></li><!-- TODO: confirmar tempo real com o dono (Botox) -->
-              <li id="luzes"><button type="button" data-servico="Luzes" data-preco="100" data-min="60"><span class="quadro__nome">Luzes</span><span class="quadro__tempo">60 min</span><span class="quadro__preco">R$ 100</span></button></li><!-- TODO: confirmar tempo real com o dono (Luzes) -->
-              <li id="nevou"><button type="button" data-servico="Nevou" data-preco="130" data-min="60"><span class="quadro__nome">Nevou</span><span class="quadro__tempo">60 min</span><span class="quadro__preco">R$ 130</span></button></li><!-- TODO: confirmar tempo real com o dono (Nevou) -->
+              <li id="relaxamento" data-area="ambos"><button type="button" data-servico="Relaxamento" data-preco="30" data-min="20"><span class="quadro__nome">Relaxamento</span><span class="quadro__tempo">20 min</span><span class="quadro__preco">R$ 30</span></button></li><!-- TODO: confirmar tempo real com o dono (Relaxamento) -->
+              <li id="progressiva" data-area="ambos"><button type="button" data-servico="Progressiva" data-preco="85" data-min="40"><span class="quadro__nome">Progressiva</span><span class="quadro__tempo">40 min</span><span class="quadro__preco">R$ 85</span></button></li><!-- TODO: confirmar tempo real com o dono (Progressiva) -->
+              <li id="botox" data-area="ambos"><button type="button" data-servico="Botox" data-preco="70" data-min="40"><span class="quadro__nome">Botox</span><span class="quadro__tempo">40 min</span><span class="quadro__preco">R$ 70</span></button></li><!-- TODO: confirmar tempo real com o dono (Botox) -->
+              <li id="luzes" data-area="ambos"><button type="button" data-servico="Luzes" data-preco="100" data-min="60"><span class="quadro__nome">Luzes</span><span class="quadro__tempo">60 min</span><span class="quadro__preco">R$ 100</span></button></li><!-- TODO: confirmar tempo real com o dono (Luzes) -->
+              <li id="nevou" data-area="masculino"><button type="button" data-servico="Nevou" data-preco="130" data-min="60"><span class="quadro__nome">Nevou</span><span class="quadro__tempo">60 min</span><span class="quadro__preco">R$ 130</span></button></li><!-- TODO: confirmar tempo real com o dono (Nevou) -->
+              <li id="alisamento" data-area="feminino"><button type="button" data-servico="Alisamento" data-preco="150" data-min="150"><span class="quadro__nome">Alisamento</span><span class="quadro__tempo">150 min</span><span class="quadro__preco">R$ 150</span></button></li> <!-- FICTÍCIO: trocar nome, preço e tempo -->
             </ul>
           </div>
-          <div class="quadro__grupo">
-            <h3>Barba</h3>
-            <ul>
-              <li id="barba"><button type="button" data-servico="Barba" data-preco="25" data-min="25"><span class="quadro__nome">Barba</span><span class="quadro__tempo">25 min</span><span class="quadro__preco">R$ 25</span></button></li>
-            </ul>
+          <!-- coluna 3: barba (masculino) | cor (feminino) + pele e estilo (os dois) -->
+          <div class="quadro__grupo" data-area="ambos">
+            <div data-area="masculino">
+              <h3>Barba</h3>
+              <ul>
+  <li id="barba" data-area="masculino"><button type="button" data-servico="Barba" data-preco="25" data-min="25"><span class="quadro__nome">Barba</span><span class="quadro__tempo">25 min</span><span class="quadro__preco">R$ 25</span></button></li>
+              </ul>
+            </div>
+            <div data-area="feminino">
+              <h3>Cor</h3>
+              <ul>
+  <li id="coloracao" data-area="feminino"><button type="button" data-servico="Coloração" data-preco="90" data-min="90"><span class="quadro__nome">Coloração</span><span class="quadro__tempo">90 min</span><span class="quadro__preco">R$ 90</span></button></li> <!-- FICTÍCIO: trocar nome, preço e tempo -->
+  <li id="mechas" data-area="feminino"><button type="button" data-servico="Mechas" data-preco="150" data-min="120"><span class="quadro__nome">Mechas</span><span class="quadro__tempo">120 min</span><span class="quadro__preco">R$ 150</span></button></li> <!-- FICTÍCIO: trocar nome, preço e tempo -->
+  <li id="morena-iluminada" data-area="feminino"><button type="button" data-servico="Morena iluminada" data-preco="280" data-min="180"><span class="quadro__nome">Morena iluminada</span><span class="quadro__tempo">180 min</span><span class="quadro__preco">R$ 280</span></button></li> <!-- FICTÍCIO: trocar nome, preço e tempo -->
+              </ul>
+            </div>
             <h3>Pele e estilo</h3>
             <ul>
-              <li id="limpeza-de-pele"><button type="button" data-servico="Limpeza de pele" data-preco="15" data-min="20"><span class="quadro__nome">Limpeza de pele</span><span class="quadro__tempo">20 min</span><span class="quadro__preco">R$ 15</span></button></li>
-              <li id="limpeza-completa"><button type="button" data-servico="Limpeza completa" data-preco="30" data-min="30"><span class="quadro__nome">Limpeza completa</span><span class="quadro__tempo">30 min</span><span class="quadro__preco">R$ 30</span></button></li>
-              <li id="penteados"><button type="button" data-servico="Penteados" data-preco="30" data-min="25"><span class="quadro__nome">Penteados</span><span class="quadro__tempo">25 min</span><span class="quadro__preco">R$ 30</span></button></li>
+              <li id="limpeza-de-pele" data-area="ambos"><button type="button" data-servico="Limpeza de pele" data-preco="15" data-min="20"><span class="quadro__nome">Limpeza de pele</span><span class="quadro__tempo">20 min</span><span class="quadro__preco">R$ 15</span></button></li>
+              <li id="limpeza-completa" data-area="ambos"><button type="button" data-servico="Limpeza completa" data-preco="30" data-min="30"><span class="quadro__nome">Limpeza completa</span><span class="quadro__tempo">30 min</span><span class="quadro__preco">R$ 30</span></button></li>
+              <li id="penteados" data-area="ambos"><button type="button" data-servico="Penteados" data-preco="30" data-min="25"><span class="quadro__nome">Penteados</span><span class="quadro__tempo">25 min</span><span class="quadro__preco">R$ 30</span></button></li>
             </ul>
           </div>
         </div>
@@ -232,27 +283,101 @@
             <div><dt>Botox</dt><dd>Tratamento capilar que reduz o frizz e devolve brilho e maciez ao fio.</dd></div>
             <div><dt>Luzes</dt><dd>Mechas clareadas que dão contraste ao corte.</dd></div>
             <div><dt>Nevou</dt><dd>Descoloração do cabelo inteiro até o platinado, quase branco.</dd></div>
+            <div><dt>Coloração</dt><dd>Tinta no cabelo inteiro para mudar ou renovar a cor.</dd></div>
+            <div><dt>Mechas</dt><dd>Clareia faixas do cabelo para dar luz e movimento.</dd></div>
+            <div><dt>Hidratação</dt><dd>Tratamento que devolve água e maciez ao fio ressecado.</dd></div>
+            <div><dt>Cauterização</dt><dd>Reconstrói a fibra do fio danificado e fecha as pontas.</dd></div>
+            <div><dt>Selagem</dt><dd>Alinha os fios e tira o frizz sem alisar por completo.</dd></div>
+            <div><dt>Alisamento</dt><dd>Química que deixa o cabelo liso de forma definitiva.</dd></div>
+            <div><dt>Morena iluminada</dt><dd>Mechas que clareiam aos poucos, das raízes escuras às pontas claras.</dd></div>
           </dl>
         </details>
       </div>
     </section>
+    </div>
 
     <!-- ===================== TRABALHOS DA CASA ===================== -->
     <section class="trabalhos" id="trabalhos">
       <div class="trabalhos__topo">
         <h2 class="titulo titulo--claro">Trabalhos da casa</h2>
-        <p>Tudo fotografado aqui dentro, sem banco de imagem. Viu um que é a sua cara? Toque em “Quero esse” e agende com ele já escolhido.</p>
+        <p>Tudo fotografado aqui dentro, sem banco de imagem. Abra uma foto para ver de perto e toque em “Quero esse” para agendar com ele já escolhido.</p>
       </div>
       <!-- CONFIRMAR COM O CLIENTE: legendas de cada foto -->
-      <ul class="galeria">
-        <li class="foto"><button type="button" class="foto__abrir" data-ampliar="img/site/luzes-platinadas-1200.webp" aria-label="Ampliar foto: luzes platinadas"><img decoding="async" src="img/site/luzes-platinadas-600.webp" width="600" height="800" loading="lazy" alt="Luzes platinadas em cabelo penteado para trás"></button><p class="foto__legenda">Luzes platinadas</p><button type="button" class="foto__quero" data-quero="Luzes platinadas" data-servicos="Luzes">Quero esse</button></li>
-        <li class="foto"><button type="button" class="foto__abrir" data-ampliar="img/site/degrade-risca-1200.webp" aria-label="Ampliar foto: degradê com risca"><img decoding="async" src="img/site/degrade-risca-600.webp" width="600" height="800" loading="lazy" alt="Degradê com risca lateral e topo penteado"></button><p class="foto__legenda">Degradê com risca</p><button type="button" class="foto__quero" data-quero="Degradê com risca" data-servicos="Corte degradê">Quero esse</button></li>
-        <li class="foto"><button type="button" class="foto__abrir" data-ampliar="img/site/degrade-navalhado-1200.webp" aria-label="Ampliar foto: navalhado"><img decoding="async" src="img/site/degrade-navalhado-600.webp" width="600" height="800" loading="lazy" alt="Degradê navalhado com lateral lisa"></button><p class="foto__legenda">Navalhado</p><button type="button" class="foto__quero" data-quero="Navalhado" data-servicos="Corte navalhado">Quero esse</button></li>
-        <li class="foto"><button type="button" class="foto__abrir" data-ampliar="img/site/trancas-degrade-1200.webp" aria-label="Ampliar foto: tranças e degradê"><img decoding="async" src="img/site/trancas-degrade-600.webp" width="600" height="800" loading="lazy" alt="Tranças nagô com degradê na lateral"></button><p class="foto__legenda">Tranças e degradê</p><button type="button" class="foto__quero" data-quero="Tranças e degradê" data-servicos="Corte degradê|Penteados">Quero esse</button></li>
-        <li class="foto"><button type="button" class="foto__abrir" data-ampliar="img/site/corte-tesoura-1200.webp" aria-label="Ampliar foto: corte na tesoura"><img decoding="async" src="img/site/corte-tesoura-600.webp" width="600" height="800" loading="lazy" alt="Corte na tesoura com fios ondulados, visto por trás"></button><p class="foto__legenda">Corte na tesoura</p><button type="button" class="foto__quero" data-quero="Corte na tesoura" data-servicos="Corte social">Quero esse</button></li>
-        <li class="foto"><button type="button" class="foto__abrir" data-ampliar="img/site/corte-social-liso-1200.webp" aria-label="Ampliar foto: corte social"><img decoding="async" src="img/site/corte-social-liso-600.webp" width="600" height="800" loading="lazy" alt="Corte social com fios lisos e acabamento na nuca"></button><p class="foto__legenda">Corte social</p><button type="button" class="foto__quero" data-quero="Corte social" data-servicos="Corte social">Quero esse</button></li>
-        <li class="foto foto--insta"><a href="https://www.instagram.com/imperioo_dantas/" target="_blank" rel="noopener"><svg aria-hidden="true" viewBox="0 0 24 24"><use href="#i-instagram"/></svg><span>Veja mais trabalhos no Instagram</span><small>@imperioo_dantas</small></a></li>
-      </ul>
+      <!-- acordeão de fotos (AccordionGallery do React Bits, em JavaScript puro: ver acordeao() no js/main.js).
+           A foto aberta fica colorida e sem escurecer; o nome e o "Quero esse" ficam pequenos no canto. -->
+      <div class="area-troca area-troca--claro" role="group" aria-label="Tipo de cabelo">
+        <button type="button" data-area-escolher="masculino" aria-pressed="true">Cabelo masculino</button>
+        <button type="button" data-area-escolher="feminino" aria-pressed="false">Cabelo feminino</button>
+      </div>
+      <div class="acordeao" data-acordeao data-area="masculino" role="list" aria-label="Fotos de trabalhos de cabelo masculino">
+        <div class="ag-panel" role="listitem" tabindex="0" data-ampliar="img/site/luzes-platinadas-1200.webp" aria-label="Luzes platinadas. Toque para ver de perto">
+          <span class="ag-panel__frame"><span class="ag-panel__media"><img class="ag-panel__pb" decoding="async" src="img/site/luzes-platinadas-600.webp" width="600" height="800" loading="lazy" alt="" draggable="false"><img class="ag-panel__cor" decoding="async" src="img/site/luzes-platinadas-600.webp" width="600" height="800" loading="lazy" alt="Luzes platinadas em cabelo penteado para trás" draggable="false"></span><span class="ag-panel__overlay" aria-hidden="true"></span><span class="ag-panel__sombra" aria-hidden="true"></span></span>
+          <span class="ag-panel__label"><span class="ag-panel__bar" aria-hidden="true"></span><span class="ag-panel__text">Luzes platinadas</span></span>
+          <button type="button" class="ag-panel__quero" data-quero="Luzes platinadas" data-servicos="Luzes" tabindex="-1">Quero esse</button>
+        </div>
+        <div class="ag-panel" role="listitem" tabindex="0" data-ampliar="img/site/degrade-risca-1200.webp" aria-label="Degradê com risca. Toque para ver de perto">
+          <span class="ag-panel__frame"><span class="ag-panel__media"><img class="ag-panel__pb" decoding="async" src="img/site/degrade-risca-600.webp" width="600" height="800" loading="lazy" alt="" draggable="false"><img class="ag-panel__cor" decoding="async" src="img/site/degrade-risca-600.webp" width="600" height="800" loading="lazy" alt="Degradê com risca lateral e topo penteado" draggable="false"></span><span class="ag-panel__overlay" aria-hidden="true"></span><span class="ag-panel__sombra" aria-hidden="true"></span></span>
+          <span class="ag-panel__label"><span class="ag-panel__bar" aria-hidden="true"></span><span class="ag-panel__text">Degradê com risca</span></span>
+          <button type="button" class="ag-panel__quero" data-quero="Degradê com risca" data-servicos="Corte degradê" tabindex="-1">Quero esse</button>
+        </div>
+        <div class="ag-panel" role="listitem" tabindex="0" data-ampliar="img/site/degrade-navalhado-1200.webp" aria-label="Navalhado. Toque para ver de perto">
+          <span class="ag-panel__frame"><span class="ag-panel__media"><img class="ag-panel__pb" decoding="async" src="img/site/degrade-navalhado-600.webp" width="600" height="800" loading="lazy" alt="" draggable="false"><img class="ag-panel__cor" decoding="async" src="img/site/degrade-navalhado-600.webp" width="600" height="800" loading="lazy" alt="Degradê navalhado com lateral lisa" draggable="false"></span><span class="ag-panel__overlay" aria-hidden="true"></span><span class="ag-panel__sombra" aria-hidden="true"></span></span>
+          <span class="ag-panel__label"><span class="ag-panel__bar" aria-hidden="true"></span><span class="ag-panel__text">Navalhado</span></span>
+          <button type="button" class="ag-panel__quero" data-quero="Navalhado" data-servicos="Corte navalhado" tabindex="-1">Quero esse</button>
+        </div>
+        <div class="ag-panel" role="listitem" tabindex="0" data-ampliar="img/site/trancas-degrade-1200.webp" aria-label="Tranças e degradê. Toque para ver de perto">
+          <span class="ag-panel__frame"><span class="ag-panel__media"><img class="ag-panel__pb" decoding="async" src="img/site/trancas-degrade-600.webp" width="600" height="800" loading="lazy" alt="" draggable="false"><img class="ag-panel__cor" decoding="async" src="img/site/trancas-degrade-600.webp" width="600" height="800" loading="lazy" alt="Tranças nagô com degradê na lateral" draggable="false"></span><span class="ag-panel__overlay" aria-hidden="true"></span><span class="ag-panel__sombra" aria-hidden="true"></span></span>
+          <span class="ag-panel__label"><span class="ag-panel__bar" aria-hidden="true"></span><span class="ag-panel__text">Tranças e degradê</span></span>
+          <button type="button" class="ag-panel__quero" data-quero="Tranças e degradê" data-servicos="Corte degradê|Penteados" tabindex="-1">Quero esse</button>
+        </div>
+        <div class="ag-panel" role="listitem" tabindex="0" data-ampliar="img/site/corte-tesoura-1200.webp" aria-label="Corte na tesoura. Toque para ver de perto">
+          <span class="ag-panel__frame"><span class="ag-panel__media"><img class="ag-panel__pb" decoding="async" src="img/site/corte-tesoura-600.webp" width="600" height="800" loading="lazy" alt="" draggable="false"><img class="ag-panel__cor" decoding="async" src="img/site/corte-tesoura-600.webp" width="600" height="800" loading="lazy" alt="Corte na tesoura com fios ondulados, visto por trás" draggable="false"></span><span class="ag-panel__overlay" aria-hidden="true"></span><span class="ag-panel__sombra" aria-hidden="true"></span></span>
+          <span class="ag-panel__label"><span class="ag-panel__bar" aria-hidden="true"></span><span class="ag-panel__text">Corte na tesoura</span></span>
+          <button type="button" class="ag-panel__quero" data-quero="Corte na tesoura" data-servicos="Corte social" tabindex="-1">Quero esse</button>
+        </div>
+        <div class="ag-panel" role="listitem" tabindex="0" data-ampliar="img/site/corte-social-liso-1200.webp" aria-label="Corte social. Toque para ver de perto">
+          <span class="ag-panel__frame"><span class="ag-panel__media"><img class="ag-panel__pb" decoding="async" src="img/site/corte-social-liso-600.webp" width="600" height="800" loading="lazy" alt="" draggable="false"><img class="ag-panel__cor" decoding="async" src="img/site/corte-social-liso-600.webp" width="600" height="800" loading="lazy" alt="Corte social com fios lisos e acabamento na nuca" draggable="false"></span><span class="ag-panel__overlay" aria-hidden="true"></span><span class="ag-panel__sombra" aria-hidden="true"></span></span>
+          <span class="ag-panel__label"><span class="ag-panel__bar" aria-hidden="true"></span><span class="ag-panel__text">Corte social</span></span>
+          <button type="button" class="ag-panel__quero" data-quero="Corte social" data-servicos="Corte social" tabindex="-1">Quero esse</button>
+        </div>
+      </div>
+      <!-- FICTÍCIO: galeria de cabelo feminino. Cada cartão ocupa o lugar de uma foto 600 × 800 (em pé, 3:4).
+           Para trocar: no lugar dos dois <span class="ag-panel__vaga">, colocar as duas <img> (ag-panel__pb e
+           ag-panel__cor) igual às fotos do cabelo masculino, mais data-ampliar="...-1200.webp" no .ag-panel,
+           e trocar o nome (ag-panel__text, aria-label e data-quero). -->
+      <div class="acordeao" data-acordeao data-area="feminino" role="list" aria-label="Fotos de trabalhos de cabelo feminino" hidden>
+        <div class="ag-panel" role="listitem" tabindex="0" aria-label="Corte em camadas">
+          <span class="ag-panel__frame"><span class="ag-panel__media"><span class="ag-panel__pb ag-panel__vaga" aria-hidden="true"></span><span class="ag-panel__cor ag-panel__vaga" aria-hidden="true"><img src="img/site/coroa.png" alt="" width="370" height="350" loading="lazy"><small>Foto 600 × 800</small></span></span><span class="ag-panel__overlay" aria-hidden="true"></span><span class="ag-panel__sombra" aria-hidden="true"></span></span>
+          <span class="ag-panel__label"><span class="ag-panel__bar" aria-hidden="true"></span><span class="ag-panel__text">Corte em camadas</span></span>
+          <button type="button" class="ag-panel__quero" data-quero="Corte em camadas" data-servicos="Corte feminino" tabindex="-1">Quero esse</button>
+        </div>
+        <div class="ag-panel" role="listitem" tabindex="0" aria-label="Escova modelada">
+          <span class="ag-panel__frame"><span class="ag-panel__media"><span class="ag-panel__pb ag-panel__vaga" aria-hidden="true"></span><span class="ag-panel__cor ag-panel__vaga" aria-hidden="true"><img src="img/site/coroa.png" alt="" width="370" height="350" loading="lazy"><small>Foto 600 × 800</small></span></span><span class="ag-panel__overlay" aria-hidden="true"></span><span class="ag-panel__sombra" aria-hidden="true"></span></span>
+          <span class="ag-panel__label"><span class="ag-panel__bar" aria-hidden="true"></span><span class="ag-panel__text">Escova modelada</span></span>
+          <button type="button" class="ag-panel__quero" data-quero="Escova modelada" data-servicos="Escova" tabindex="-1">Quero esse</button>
+        </div>
+        <div class="ag-panel" role="listitem" tabindex="0" aria-label="Mechas iluminadas">
+          <span class="ag-panel__frame"><span class="ag-panel__media"><span class="ag-panel__pb ag-panel__vaga" aria-hidden="true"></span><span class="ag-panel__cor ag-panel__vaga" aria-hidden="true"><img src="img/site/coroa.png" alt="" width="370" height="350" loading="lazy"><small>Foto 600 × 800</small></span></span><span class="ag-panel__overlay" aria-hidden="true"></span><span class="ag-panel__sombra" aria-hidden="true"></span></span>
+          <span class="ag-panel__label"><span class="ag-panel__bar" aria-hidden="true"></span><span class="ag-panel__text">Mechas iluminadas</span></span>
+          <button type="button" class="ag-panel__quero" data-quero="Mechas iluminadas" data-servicos="Mechas" tabindex="-1">Quero esse</button>
+        </div>
+        <div class="ag-panel" role="listitem" tabindex="0" aria-label="Coloração">
+          <span class="ag-panel__frame"><span class="ag-panel__media"><span class="ag-panel__pb ag-panel__vaga" aria-hidden="true"></span><span class="ag-panel__cor ag-panel__vaga" aria-hidden="true"><img src="img/site/coroa.png" alt="" width="370" height="350" loading="lazy"><small>Foto 600 × 800</small></span></span><span class="ag-panel__overlay" aria-hidden="true"></span><span class="ag-panel__sombra" aria-hidden="true"></span></span>
+          <span class="ag-panel__label"><span class="ag-panel__bar" aria-hidden="true"></span><span class="ag-panel__text">Coloração</span></span>
+          <button type="button" class="ag-panel__quero" data-quero="Coloração" data-servicos="Coloração" tabindex="-1">Quero esse</button>
+        </div>
+        <div class="ag-panel" role="listitem" tabindex="0" aria-label="Hidratação">
+          <span class="ag-panel__frame"><span class="ag-panel__media"><span class="ag-panel__pb ag-panel__vaga" aria-hidden="true"></span><span class="ag-panel__cor ag-panel__vaga" aria-hidden="true"><img src="img/site/coroa.png" alt="" width="370" height="350" loading="lazy"><small>Foto 600 × 800</small></span></span><span class="ag-panel__overlay" aria-hidden="true"></span><span class="ag-panel__sombra" aria-hidden="true"></span></span>
+          <span class="ag-panel__label"><span class="ag-panel__bar" aria-hidden="true"></span><span class="ag-panel__text">Hidratação</span></span>
+          <button type="button" class="ag-panel__quero" data-quero="Hidratação" data-servicos="Hidratação" tabindex="-1">Quero esse</button>
+        </div>
+        <div class="ag-panel" role="listitem" tabindex="0" aria-label="Penteado">
+          <span class="ag-panel__frame"><span class="ag-panel__media"><span class="ag-panel__pb ag-panel__vaga" aria-hidden="true"></span><span class="ag-panel__cor ag-panel__vaga" aria-hidden="true"><img src="img/site/coroa.png" alt="" width="370" height="350" loading="lazy"><small>Foto 600 × 800</small></span></span><span class="ag-panel__overlay" aria-hidden="true"></span><span class="ag-panel__sombra" aria-hidden="true"></span></span>
+          <span class="ag-panel__label"><span class="ag-panel__bar" aria-hidden="true"></span><span class="ag-panel__text">Penteado</span></span>
+          <button type="button" class="ag-panel__quero" data-quero="Penteado" data-servicos="Penteados" tabindex="-1">Quero esse</button>
+        </div>
+      </div>
+      <a class="trabalhos__insta" href="https://www.instagram.com/imperioo_dantas/" target="_blank" rel="noopener"><svg aria-hidden="true" viewBox="0 0 24 24"><use href="#i-instagram"/></svg>Veja mais trabalhos no Instagram <small>@imperioo_dantas</small></a>
     </section>
 
     <!-- ===================== QUEM ATENDE (oculta) =====================
@@ -288,7 +413,7 @@
     <section class="duvidas" id="duvidas">
       <h2 class="titulo">Antes de sentar na cadeira</h2>
       <div class="duvidas__lista">
-        <details><summary>Precisa agendar?</summary><p>É o melhor caminho para garantir o horário. Toque em Agendar horário e siga os 4 passos: escolha o serviço, o profissional, o dia e o horário, e confirme com seu nome e telefone. Para ser atendido hoje sem hora marcada, use Entrar na fila.</p></details>
+        <details><summary>Precisa agendar?</summary><p>É o melhor caminho para garantir o horário. Toque em Agendar horário e siga os 4 passos: escolha o serviço, o profissional, o dia e o horário, e confirme com seu e-mail e senha (na primeira vez, você cria a conta ali mesmo). Para ser atendido hoje sem hora marcada, use Entrar na fila.</p></details>
         <details><summary>Qual a diferença entre agendar e entrar na fila?</summary><p>O agendamento garante o seu horário: você escolhe o dia e a hora e chega na hora marcada. A fila é por ordem de chegada, para quem quer ser atendido no mesmo dia: você entra pelo site, acompanha a sua posição e vem para o salão quando estiver perto da sua vez.</p></details>
         <details><summary>Atende cabelo feminino?</summary><p>Sim. O Império Dantas é um salão de beleza unissex: corte, química, limpeza de pele e penteados para todos.</p></details>
         <!-- PREENCHER e descomentar (e adicionar no JSON-LD FAQPage):
@@ -374,6 +499,10 @@
       <div class="agenda__corpo" data-agenda-corpo>
         <section class="etapa" data-etapa="1">
           <h2 class="etapa__titulo" id="agenda-titulo" tabindex="-1">Agende seu horário</h2>
+          <div class="area-troca area-troca--agenda" role="group" aria-label="Tipo de cabelo">
+            <button type="button" data-area-escolher="masculino" aria-pressed="true">Cabelo masculino</button>
+            <button type="button" data-area-escolher="feminino" aria-pressed="false">Cabelo feminino</button>
+          </div>
           <p class="etapa__dica">Escolha um ou mais serviços.</p>
           <div class="opcoes" data-agenda-servicos></div>
         </section>
@@ -400,8 +529,26 @@
         <section class="etapa" data-etapa="4" hidden>
           <h2 class="etapa__titulo" tabindex="-1">Confirme seu horário</h2>
           <dl class="resumo" data-agenda-resumo></dl>
-          <label class="entrada" data-revela><span>Nome</span><input name="nome" autocomplete="name" maxlength="80" required></label>
-          <label class="entrada" data-revela><span>WhatsApp</span><input name="telefone" type="tel" inputmode="tel" autocomplete="tel" placeholder="(11) 90000-0000" maxlength="16" required></label>
+          <!-- conta: quem já entrou só confirma; quem não entrou, entra ou cria a conta aqui mesmo -->
+          <div class="conta-ag" data-revela>
+            <div class="conta-ag__logado" data-conta-logado hidden>
+              <span class="conta-ag__ini" data-conta-ini aria-hidden="true"></span>
+              <p><span>Confirmando como</span><strong data-conta-nome-ag></strong><small data-conta-email-ag></small></p>
+              <button type="button" class="conta-ag__trocar" data-conta-sair>Trocar conta</button>
+            </div>
+            <fieldset class="conta-ag__form" data-conta-form>
+              <legend>Seus dados</legend>
+              <div class="conta-ag__abas" role="tablist" aria-label="Tenho ou não tenho conta">
+                <button type="button" role="tab" aria-selected="true" data-conta-modo="cadastrar">Primeira vez</button>
+                <button type="button" role="tab" aria-selected="false" data-conta-modo="entrar">Já tenho conta</button>
+              </div>
+              <label class="entrada" data-so-modo="cadastrar"><span>Nome</span><input name="nome" autocomplete="name" maxlength="80"></label>
+              <label class="entrada" data-so-modo="cadastrar"><span>WhatsApp</span><input name="telefone" type="tel" inputmode="tel" autocomplete="tel" placeholder="(11) 90000-0000" maxlength="16"></label>
+              <label class="entrada"><span>E-mail</span><input name="email" type="email" inputmode="email" autocomplete="email" maxlength="160"></label>
+              <label class="entrada"><span>Senha</span><input name="senha" type="password" autocomplete="new-password" maxlength="200"><small data-so-modo="cadastrar">Pelo menos 8 caracteres. Na próxima vez é só entrar com ela.</small></label>
+              <a class="conta-ag__esqueci" href="entrar.html#esqueci" target="_blank" rel="noopener" data-so-modo="entrar" hidden>Esqueci minha senha</a>
+            </fieldset>
+          </div>
           <!-- isca para robôs: pessoas não veem este campo -->
           <label class="agenda__isca" aria-hidden="true">Site<input name="site" tabindex="-1" autocomplete="off"></label>
           <p class="agenda__erro" data-agenda-erro role="alert" hidden></p>

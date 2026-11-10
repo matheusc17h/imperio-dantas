@@ -1,4 +1,7 @@
 User-agent: *
 Allow: /
+Disallow: /painel.html
+Disallow: /entrar.html
+Disallow: /api/
 
 Sitemap: https://imperio-dantas.vercel.app/sitemap.xml

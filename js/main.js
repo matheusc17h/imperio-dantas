@@ -8,8 +8,10 @@ const CONFIG = {
   whatsapp: '5511945046553',
   // endereço usado no mapa e no "Abrir no Google Maps"
   endereco: 'Estrada do Pequiá, 1828 - Vila Silviania, Carapicuíba - SP, 06381-095',
-  // quem atende (aparece no passo 2 do agendamento). Ao mudar, mudar também em api/_lib.js
-  profissionais: ['Gabriel Dantas'],
+  // quem atende (aparece no passo 2 do agendamento) e em que área. Ao mudar, mudar também em api/_lib.js.
+  // Valem só sem a API no ar: com ela, a lista vem da Equipe do painel.
+  profissionais: ['Dantas', 'Larissa Mendes'], // FICTÍCIO: Larissa Mendes (profissional do cabelo feminino)
+  areaDe: { Dantas: 'masculino', 'Larissa Mendes': 'feminino' },
   // endereço da API de agendamento. Sem API no ar, o pedido segue pronto para o WhatsApp
   api: '/api',
 };
@@ -24,6 +26,9 @@ const HORARIOS = {
   5: ['09:00', '20:00'],
   6: ['09:00', '20:00'],
 };
+// pausas fixas por dia da semana ({ 2: [['16:00', '17:00']] }) e fotos de quem atende: vêm do painel
+const PAUSAS = {};
+const FOTOS = {};
 
 const DIAS = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
 const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
@@ -33,6 +38,8 @@ const duracao = (t) => (t >= 60 ? `${Math.floor(t / 60)}h${t % 60 ? String(t % 6
 const minutos = (hhmm) => { const [h, m] = hhmm.split(':').map(Number); return h * 60 + m; };
 const hora = (hhmm) => hhmm.replace(':00', 'h').replace(':', 'h');
 const preenchido = (txt) => txt && !txt.includes('[');
+const iniciais = (nome) => String(nome).split(/\s+/).filter(Boolean).map((p) => p[0]).slice(0, 2).join('').toUpperCase();
+const emailOk = (txt) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(txt).trim());
 // telefone com máscara: (11) 91234-5678
 const mascaraTel = (valor) => {
   const d = valor.replace(/\D/g, '').slice(0, 11);
@@ -51,6 +58,41 @@ const comMovimento = () => Boolean(window.gsap) && !REDUZIR;
 const ENTRA = 'power4.out';
 const SAI = 'power2.in';
 const cascata = (passo = 0.05) => (i) => Math.min(i, 5) * passo;
+// celular: a barra de endereço aparecendo/sumindo não refaz todas as animações de rolagem (evita tranco)
+if (window.ScrollTrigger) ScrollTrigger.config({ ignoreMobileResize: true });
+// links para seções da própria página: rolagem suave feita aqui, e não com scroll-behavior no CSS
+// (o CSS animava também as correções internas do ScrollTrigger e a página escorregava sozinha)
+document.addEventListener('click', (e) => {
+  const a = e.target.closest('a[href^="#"]');
+  const id = a?.getAttribute('href').slice(1);
+  const alvo = id && document.getElementById(id);
+  if (!alvo || e.defaultPrevented) return;
+  e.preventDefault();
+  alvo.scrollIntoView({ behavior: REDUZIR ? 'auto' : 'smooth', block: 'start' });
+  history.replaceState(null, '', `#${id}`);
+  // "Pular para o conteúdo": o foco do teclado vai junto
+  if (a.classList.contains('pular')) {
+    if (!alvo.hasAttribute('tabindex')) alvo.setAttribute('tabindex', '-1');
+    alvo.focus({ preventScroll: true });
+  }
+});
+(function medidasEmDia() {
+  if (!window.ScrollTrigger || !('ResizeObserver' in window)) return;
+  let altura = 0;
+  let espera = 0;
+  const conferir = () => {
+    const agora = document.querySelector('main')?.offsetHeight || 0;
+    if (Math.abs(agora - altura) < 2) return; // só quando mudou de verdade (evita refazer sem parar)
+    altura = agora;
+    clearTimeout(espera);
+    espera = setTimeout(() => { ScrollTrigger.refresh(); altura = document.querySelector('main')?.offsetHeight || 0; }, 200);
+  };
+  addEventListener('load', () => {
+    altura = document.querySelector('main')?.offsetHeight || 0;
+    new ResizeObserver(conferir).observe(document.querySelector('main'));
+    document.fonts?.ready.then(() => ScrollTrigger.refresh());
+  });
+})();
 
 // trava a rolagem da página (menu ou tela por cima). Conta quantas estão abertas
 let travas = 0;
@@ -59,15 +101,73 @@ function travarRolagem(sim) {
   document.documentElement.classList.toggle('travado', travas > 0);
 }
 
-// revela no scroll uma vez só, quando o bloco entra ~12% na tela
-function revelar(gatilho, itens) {
-  const lista = [...itens].filter(Boolean);
-  if (!comMovimento() || !window.ScrollTrigger || !gatilho || !lista.length) return;
+/* ---------- Entrada no scroll: AnimatedContent (React Bits) adaptado para JavaScript puro ----------
+   Mesmas opções do componente original: distance, direction, reverse, duration, ease, initialOpacity,
+   animateOpacity, scale, blur, rotate, tilt, threshold, delay, stagger, staggerFrom, once e scrub.
+   Com scrub, a animação fica presa à rolagem: entra conforme a pessoa desce e volta conforme sobe.
+   "alvos" troca os filhos diretos por uma lista própria. Com "reduzir movimento", não anima. */
+function animatedContent(el, o = {}) {
+  if (!el || !comMovimento() || !window.ScrollTrigger) return;
   gsap.registerPlugin(ScrollTrigger);
-  gsap.from(lista, {
-    y: 16, opacity: 0, duration: 0.45, ease: ENTRA, stagger: cascata(), clearProps: 'transform,opacity',
-    scrollTrigger: { trigger: gatilho, start: 'top 88%', once: true },
+  const {
+    distance = 100, direction = 'vertical', reverse = false, duration = 0.8, ease = 'power3.out',
+    initialOpacity = 0, animateOpacity = true, scale = 1, blur = 0, rotate = 0, tilt = 0,
+    threshold = 0.1, delay = 0, stagger = 0, staggerFrom = 'start', once = true, scrub = false, alvos,
+  } = o;
+  const lista = alvos ? [...alvos].filter(Boolean) : (stagger > 0 && el.children.length ? [...el.children] : [el]);
+  if (!lista.length) return;
+  const horizontal = direction === 'horizontal';
+  const eixo = horizontal ? 'x' : 'y';
+  const sinal = reverse ? -1 : 1;
+  const de = { [eixo]: distance * sinal, scale, opacity: animateOpacity ? initialOpacity : 1 };
+  const para = { [eixo]: 0, scale: 1, opacity: 1, duration, ease };
+  if (blur > 0) { de.filter = `blur(${blur}px)`; para.filter = 'blur(0px)'; }
+  if (rotate) { de.rotation = rotate * sinal; para.rotation = 0; }
+  if (tilt) {
+    const giro = horizontal ? 'rotationY' : 'rotationX';
+    de[giro] = horizontal ? -tilt * sinal : tilt * sinal;
+    para[giro] = 0;
+    de.transformPerspective = 900;
+    para.transformPerspective = 900;
+  }
+  if (stagger > 0) para.stagger = { each: stagger, from: staggerFrom };
+  const inicio = `top ${(1 - threshold) * 100}%`;
+  if (scrub) {
+    // presa à rolagem (como no componente original): começa quando o topo do bloco entra na tela
+    // e termina quando ele já subiu um bom pedaço; ao subir a página, volta pelo mesmo caminho
+    const tl = gsap.timeline({ defaults: { ease: 'none' } });
+    tl.fromTo(lista, de, { ...para, ease: 'power2.out' }, 0);
+    ScrollTrigger.create({
+      // clamp(): perto do fim da página (ex.: rodapé) o trecho encurta, para a animação sempre terminar
+      trigger: el, start: `clamp(${inicio})`, end: `clamp(top ${Math.max((1 - threshold) * 100 - 45, 5)}%)`,
+      scrub: scrub === true ? true : Math.max(Number(scrub) || 0, 0.01), animation: tl, invalidateOnRefresh: true,
+    });
+    return;
+  }
+  const tl = gsap.timeline({
+    paused: true,
+    // terminou: limpa o que o GSAP escreveu, para hover e :active do CSS voltarem a valer
+    onComplete: () => gsap.set(lista, { clearProps: 'filter,transform,opacity' }),
   });
+  tl.fromTo(lista, de, para, Math.max(delay, 0));
+  ScrollTrigger.create({
+    trigger: el, start: inicio, once,
+    onEnter: () => tl.play(),
+    onLeaveBack: once ? undefined : () => tl.reverse(),
+  });
+}
+
+// o mesmo efeito em todo o site (teste pedido pelo dono). Para ajustar, mexer só aqui.
+// No celular: menos distância e sem desfoque (o blur pesa em aparelho mais simples).
+// Presa à rolagem (scrub): desce e entra, sobe e sai, sempre no ritmo de quem rola.
+const ENTRADA = matchMedia('(max-width: 959px)').matches
+  ? { distance: 40, duration: 0.7, ease: 'power3.out', stagger: 0.08, threshold: 0.08, scrub: 0.3 }
+  : { distance: 80, duration: 0.8, ease: 'power3.out', stagger: 0.08, threshold: 0.08, scrub: 0.3 };
+// sem desfoque (blur): ele é redesenhado a cada quadro e pesa; só posição e opacidade animam
+
+// revela no scroll: o bloco "gatilho" entrando na tela anima os "itens" em cascata (e volta ao subir)
+function revelar(gatilho, itens) {
+  animatedContent(gatilho, { ...ENTRADA, alvos: itens });
 }
 
 /* ---------- Telas por cima (agendamento, fila e foto ampliada) ----------
@@ -157,10 +257,67 @@ document.querySelectorAll('dialog').forEach((d) => {
   arrastarParaFechar(d);
 });
 
-// serviços: a tabela de preços do index.html é a fonte única
+// serviços: a tabela de preços do index.html é a fonte única (área vem do data-area do <li>)
 const SERVICOS = [...document.querySelectorAll('.quadro [data-servico]')].map((a) => ({
   nome: a.dataset.servico, preco: Number(a.dataset.preco), min: Number(a.dataset.min),
+  area: a.closest('[data-area]')?.dataset.area || 'ambos',
 }));
+
+/* ---------- Cabelo masculino | Cabelo feminino ----------
+   Uma escolha só para o site inteiro: a tabela de preços, a galeria de trabalhos e o passo 1 do
+   agendamento mostram o lado escolhido. "ambos" aparece nos dois. Os botões [data-area-escolher]
+   ficam sincronizados. A troca anima: o lado atual some e o outro entra (só opacidade e posição). */
+const AREA = { atual: 'masculino', ouvintes: [] };
+const naArea = (area, alvo = AREA.atual) => !area || area === 'ambos' || area === alvo;
+// área que os serviços pedem: 'masculino', 'feminino', null (qualquer) ou false (misturou os dois)
+function areaDosServicos(lista) {
+  const exclusivas = [...new Set(lista.map((x) => x.area).filter((a) => a && a !== 'ambos'))];
+  return exclusivas.length > 1 ? false : exclusivas[0] || null;
+}
+const areaDaPessoa = (nome) => CONFIG.areaDe[nome] || 'ambos';
+function mudarArea(nova, animar = true) {
+  if (!['masculino', 'feminino'].includes(nova)) return;
+  const antes = AREA.atual;
+  AREA.atual = nova;
+  document.querySelectorAll('[data-area-escolher]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.areaEscolher === nova)));
+  if (antes === nova) return;
+  const trocar = (caixa, aplicar) => {
+    if (!caixa) return;
+    if (!animar || !comMovimento()) { aplicar(); return; }
+    gsap.killTweensOf(caixa);
+    gsap.to(caixa, {
+      opacity: 0, y: 10, duration: 0.18, ease: SAI,
+      onComplete: () => {
+        aplicar();
+        gsap.fromTo(caixa, { opacity: 0, y: -10 }, { opacity: 1, y: 0, duration: 0.35, ease: ENTRA, clearProps: 'transform,opacity' });
+        if (window.ScrollTrigger) ScrollTrigger.refresh(); // as alturas mudaram: recalcula os efeitos de rolagem
+      },
+    });
+  };
+  // tabela de preços: grupos, sub-blocos e linhas com data-area
+  const grupos = document.querySelector('[data-area-conteudo]');
+  trocar(grupos, () => grupos.querySelectorAll('[data-area]').forEach((el) => { el.hidden = !naArea(el.dataset.area); }));
+  // galeria de trabalhos: uma por área
+  const galerias = [...document.querySelectorAll('[data-acordeao][data-area]')];
+  if (galerias.length) trocar(galerias, () => galerias.forEach((g) => { g.hidden = g.dataset.area !== nova; }));
+  AREA.ouvintes.forEach((fn) => fn(nova));
+}
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-area-escolher]');
+  if (b) mudarArea(b.dataset.areaEscolher);
+});
+// começa no masculino (a tabela já vem montada; só esconde o lado feminino)
+document.querySelectorAll('[data-area-conteudo] [data-area]').forEach((el) => { el.hidden = !naArea(el.dataset.area); });
+
+// números do topo ("R$ 15 a R$ 150", "17 serviços") saem da própria tabela
+function pintarResumoPrecos() {
+  const precos = SERVICOS.map((x) => x.preco);
+  const faixa = document.querySelector('[data-faixa-precos]');
+  const qtd = document.querySelector('[data-qtd-servicos]');
+  if (faixa && precos.length) faixa.textContent = `${brl(Math.min(...precos))} a ${brl(Math.max(...precos))}`;
+  if (qtd) qtd.textContent = String(SERVICOS.length);
+}
+pintarResumoPrecos();
 
 /* ---------- WhatsApp: um lugar só para montar os links ---------- */
 function linkWhatsApp(mensagem) {
@@ -173,6 +330,90 @@ document.querySelectorAll('[data-servico]').forEach((b) => {
   const { servico, preco, min } = b.dataset;
   b.setAttribute('aria-label', `Agendar ${servico}, ${brl(Number(preco))}, ${min} minutos`);
 });
+
+/* ---------- Dados do painel: preços, horários, pausas e quem atende ----------
+   O index.html já vem com os valores de sempre (bom para o Google e para quem abre com internet
+   ruim). Se o dono mudou alguma coisa no painel, /api/config traz o valor novo e a página se ajusta. */
+const SEMANA_EN = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+function aplicarConfig(c) {
+  (c.servicos || []).forEach((s) => {
+    const bt = [...document.querySelectorAll('.quadro [data-servico]')].find((b) => b.dataset.servico === s.nome);
+    const item = SERVICOS.find((x) => x.nome === s.nome);
+    if (!bt || !item) return;
+    item.preco = s.preco;
+    item.min = s.min;
+    if (s.area) item.area = s.area;
+    bt.dataset.preco = s.preco;
+    bt.dataset.min = s.min;
+    bt.querySelector('.quadro__preco').textContent = brl(s.preco);
+    bt.querySelector('.quadro__tempo').textContent = `${s.min} min`;
+    bt.setAttribute('aria-label', `Agendar ${s.nome}, ${brl(s.preco)}, ${s.min} minutos`);
+  });
+  pintarResumoPrecos();
+  if (c.horarios) {
+    for (let d = 0; d < 7; d++) {
+      HORARIOS[d] = c.horarios[d] || null;
+      PAUSAS[d] = c.pausas?.[d] || [];
+      const td = document.querySelector(`[data-dia-semana="${d}"] td`);
+      if (td) {
+        td.innerHTML = HORARIOS[d]
+          ? `${hora(HORARIOS[d][0])} às ${hora(HORARIOS[d][1])}${PAUSAS[d].map(([a, b]) => `<span class="horario__pausa">pausa das ${hora(a)} às ${hora(b)}</span>`).join('')}`
+          : 'Fechado';
+      }
+    }
+    atualizarStatus();
+  }
+  if (c.profissionais?.length) {
+    CONFIG.profissionais = c.profissionais.map((p) => p.nome);
+    CONFIG.areaDe = Object.fromEntries(c.profissionais.map((p) => [p.nome, p.area || 'ambos']));
+    c.profissionais.forEach((p) => { FOTOS[p.nome] = p.foto; });
+  }
+  // dados estruturados (Google) com os mesmos preços e horários
+  const ld = [...document.querySelectorAll('script[type="application/ld+json"]')].find((x) => x.textContent.includes('"HairSalon"'));
+  if (!ld) return;
+  try {
+    const j = JSON.parse(ld.textContent);
+    j.hasOfferCatalog?.itemListElement?.forEach((o) => {
+      const s = SERVICOS.find((x) => x.nome === o.itemOffered?.name);
+      if (s) o.price = String(s.preco);
+    });
+    const precos = SERVICOS.map((s) => s.preco);
+    j.priceRange = `R$ ${Math.min(...precos)} - R$ ${Math.max(...precos)}`;
+    j.openingHoursSpecification = SEMANA_EN.map((dia, d) => ({
+      '@type': 'OpeningHoursSpecification', dayOfWeek: dia, opens: HORARIOS[d]?.[0] || '00:00', closes: HORARIOS[d]?.[1] || '00:00',
+    }));
+    ld.textContent = JSON.stringify(j);
+  } catch { /* fica o que veio no HTML */ }
+}
+const configPronta = (async () => {
+  if (!CONFIG.api) return;
+  try {
+    const r = await fetch(`${CONFIG.api}/config`, { headers: { Accept: 'application/json' } });
+    if (r.ok) aplicarConfig(await r.json());
+  } catch { /* sem API: valem os dados do HTML */ }
+})();
+
+/* ---------- Conta: botão do topo ----------
+   Sem login mostra "Entrar"; com login, as iniciais (e quem é da equipe vai para o painel). */
+const sessao = { conta: null };
+function pintarContaTopo() {
+  const a = document.querySelector('[data-conta-link]');
+  if (!a) return;
+  const c = sessao.conta;
+  const equipe = c && c.papel !== 'cliente';
+  a.classList.toggle('nav__conta--logado', Boolean(c));
+  a.href = equipe ? 'painel.html' : 'entrar.html';
+  a.querySelector('[data-conta-txt]').textContent = c ? (equipe ? 'Painel' : c.nome.split(' ')[0]) : 'Entrar';
+  a.setAttribute('aria-label', c ? (equipe ? `Abrir o painel (${c.nome})` : `Sua conta: ${c.nome}`) : 'Entrar na sua conta');
+  a.querySelector('[data-conta-icone]').innerHTML = c ? escapar(iniciais(c.nome)) : '<svg viewBox="0 0 24 24"><use href="#i-conta"/></svg>';
+}
+const sessaoPronta = (async () => {
+  if (!CONFIG.api) return;
+  try {
+    const r = await fetch(`${CONFIG.api}/conta`, { headers: { Accept: 'application/json' } });
+    if (r.ok) { sessao.conta = (await r.json()).conta; pintarContaTopo(); }
+  } catch { /* sem API: fica "Entrar" */ }
+})();
 
 /* ---------- Tempos: a tabela de preços (data-min) é a fonte única ---------- */
 document.querySelectorAll('.quadro [data-servico] .quadro__tempo').forEach((el) => {
@@ -302,17 +543,24 @@ if (botaoMenu && menu) {
   const grupos = [...placa.querySelectorAll('.quadro__grupo')];
   const glossario = placa.querySelector('.quadro__glossario');
   gsap.matchMedia().add({ desk: '(min-width: 960px)', mob: '(max-width: 959px)' }, (ctx) => {
-    const entrada = gsap.timeline({ defaults: { ease: ENTRA }, scrollTrigger: { trigger: placa, start: 'top 88%', once: true } })
-      .from(placa, { opacity: 0, duration: 0.3, clearProps: 'opacity' });
+    // presa à rolagem (desce e entra, sobe e sai), como o resto do site
+    const entrada = gsap.timeline({
+      defaults: { ease: 'power2.out' },
+      scrollTrigger: { trigger: placa, start: 'top 92%', end: ctx.conditions.desk ? 'top 35%' : 'top 55%', scrub: 0.3, invalidateOnRefresh: true },
+    })
+      .fromTo(placa, { opacity: 0 }, { opacity: 1, duration: 0.3 });
     if (ctx.conditions.desk) {
       // desktop: a placa inteira cabe na tela, então tudo entra junto em cascata curta
-      entrada.from([...topo, ...grupos, glossario], { y: 16, opacity: 0, duration: 0.45, stagger: cascata(), clearProps: 'transform,opacity' }, 0.08);
+      // mesma entrada do resto do site (ENTRADA, lá em cima)
+      entrada.fromTo([...topo, ...grupos, glossario],
+        { y: ENTRADA.distance, opacity: 0 },
+        { y: 0, opacity: 1, duration: ENTRADA.duration, stagger: ENTRADA.stagger }, 0.08);
       return;
     }
     // celular: a placa é bem mais alta que a tela. O topo entra com ela; depois cada linha
     // acompanha a barra de rolagem (exceção pedida à regra "nada preso ao scroll no celular"):
     // nome e tempo vêm da esquerda, o preço da direita, e tudo volta se a pessoa rolar para cima
-    entrada.from(topo, { y: 16, opacity: 0, duration: 0.45, stagger: cascata(), clearProps: 'transform,opacity' }, 0.08);
+    entrada.fromTo(topo, { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, stagger: cascata() }, 0.08);
     const rolagem = (alvo) => ({ trigger: alvo, start: 'top 96%', end: 'top 72%', scrub: 0.4, invalidateOnRefresh: true });
     placa.querySelectorAll('.quadro__grupo h3').forEach((h3) => {
       gsap.fromTo(h3, { y: 16, opacity: 0 }, { y: 0, opacity: 1, ease: 'none', scrollTrigger: rolagem(h3) });
@@ -365,13 +613,191 @@ if (botaoMenu && menu) {
   });
 })();
 
+/* ---------- Sobreposição: a tabela de preços sobe por cima do topo ----------
+   Só no computador (onde o topo tem a altura exata da tela; ver .sobrepor no CSS). Enquanto a
+   tabela sobe, o topo recua um pouco e escurece, como se ficasse para trás. Só transform e opacity. */
+(function sobreposicao() {
+  const topo = document.querySelector('.sobrepor .hero');
+  const tabela = document.querySelector('.sobrepor .quadro');
+  if (!topo || !tabela || !comMovimento() || !window.ScrollTrigger) return;
+  gsap.registerPlugin(ScrollTrigger);
+  gsap.matchMedia().add('(min-width: 960px) and (min-height: 620px)', () => {
+    gsap.fromTo(topo, { scale: 1, opacity: 1 }, {
+      scale: 0.94, opacity: 0.35, ease: 'none', transformOrigin: '50% 40%', immediateRender: false,
+      scrollTrigger: { trigger: tabela, start: 'top bottom', end: 'top top+=72', scrub: true },
+    });
+  });
+})();
+
+/* ---------- Saída da tabela de preços: a placa preta vira a próxima seção ----------
+   Computador: a tabela para na tela; rolando, o texto da placa some aos poucos e a placa preta
+   cresce até cobrir a tela. Como "Trabalhos da casa" também é preta, a passagem fica sem corte.
+   Tudo preso à rolagem (scrub com folga), então anda no ritmo de quem rola e volta ao subir. */
+(function saidaDaTabela() {
+  const secao = document.querySelector('.sobrepor .quadro');
+  const placa = secao?.querySelector('.quadro__placa');
+  if (!placa || !comMovimento() || !window.ScrollTrigger) return;
+  gsap.registerPlugin(ScrollTrigger);
+  gsap.matchMedia().add('(min-width: 960px) and (min-height: 620px)', () => {
+    const conteudo = placa.querySelectorAll('.quadro__topo, .quadro__grupo, .quadro__glossario');
+    // quanto a placa precisa crescer para passar das bordas da tela (com folga, a moldura sai de vista)
+    const cobrir = () => Math.max(innerWidth / placa.offsetWidth, innerHeight / placa.offsetHeight) * 1.25;
+    // a seção seguinte começa por baixo da placa já crescida: assim que o zoom termina,
+    // "Trabalhos da casa" sobe por cima do preto, sem uma tela vazia no meio
+    const invol = secao.closest('.sobrepor');
+    const encaixar = () => { invol.style.marginBottom = `-${secao.offsetHeight}px`; };
+    encaixar();
+    ScrollTrigger.addEventListener('refreshInit', encaixar);
+    // rolagem: 1,2 tela para o texto sumir e a placa crescer + 1 tela parada no preto,
+    // que é quando a próxima seção sobe
+    gsap.timeline({
+      defaults: { ease: 'none' },
+      scrollTrigger: {
+        // placa mais alta que a tela (ex.: lado feminino, com mais serviços): só para quando a última
+        // linha já apareceu; senão o texto começaria a sumir antes de a pessoa ver tudo
+        trigger: secao,
+        start: () => {
+          const nav = document.querySelector('.nav')?.offsetHeight || 72;
+          return secao.offsetHeight > innerHeight - nav ? 'bottom bottom' : `top top+=${nav}`;
+        },
+        end: () => `+=${innerHeight * 1.2 + secao.offsetHeight}`,
+        // scrub: true = colado na barra de rolagem, sem atraso. Com atraso, ao subir rápido a tabela
+        // destravava enquanto a placa ainda estava grande, e uma placa gigante passava pela tela.
+        // (sem anticipatePin: ele trava cedo demais e a tabela dá um salto ao rolar devagar)
+        pin: true, scrub: true, invalidateOnRefresh: true,
+      },
+    })
+      .fromTo(conteudo, { opacity: 1, y: 0 }, { opacity: 0, y: -24, duration: 0.4, stagger: 0.04, immediateRender: false })
+      .fromTo(placa, { scale: 1 }, { scale: cobrir, duration: 0.6, ease: 'power2.in', immediateRender: false }, 0.32)
+      .to({}, { duration: 0.75 }); // a parte parada no preto
+    return () => {
+      ScrollTrigger.removeEventListener('refreshInit', encaixar);
+      invol.style.marginBottom = '';
+    };
+  });
+})();
+
 /* ---------- Trabalhos da casa: título, texto e fotos entram com fade e leve subida (uma vez) ---------- */
 (function animarTrabalhos() {
   const sec = document.getElementById('trabalhos');
   if (!sec) return;
   revelar(sec.querySelector('.trabalhos__topo'), sec.querySelectorAll('.trabalhos__topo > *'));
-  revelar(sec.querySelector('.galeria'), sec.querySelectorAll('.galeria > .foto'));
+  revelar(sec.querySelector('.acordeao'), sec.querySelectorAll('.acordeao > .ag-panel'));
 })();
+
+/* ---------- Acordeão de fotos: AccordionGallery (React Bits) adaptado para JavaScript puro ----------
+   Mesma animação do original: a foto escolhida cresce (expandRatio), as outras se inclinam em 3D
+   (tilt), ficam em preto e branco e escurecem; a imagem desliza por dentro (parallax) e a legenda
+   entra com a barrinha. Mouse em cima abre (trigger "hover"); toque e teclado também.
+   Clique numa foto fechada só abre ela; clique na aberta amplia (ver "Foto ampliada"). */
+function acordeao(root, o = {}) {
+  const {
+    defaultIndex = 2, expandRatio = 0.52, duration = 0.6, ease = 'power3.out', parallax = 0.5,
+    tilt = 8, stagger = 0.06, trigger = 'hover', grayscale = true, showLabels = true,
+    aspect = 0, // largura ÷ altura das fotos. Com valor, a foto aberta fica nesse formato e aparece inteira
+  } = o;
+  const panels = [...root.querySelectorAll('.ag-panel')];
+  const count = panels.length;
+  if (!count || !window.gsap) return;
+  const media = panels.map((p) => p.querySelector('.ag-panel__media'));
+  // leveza: a cor e o escurecido são camadas que só mudam de opacidade (sem filtro animado)
+  const cor = panels.map((p) => p.querySelector('.ag-panel__cor'));
+  const sombra = panels.map((p) => p.querySelector('.ag-panel__sombra'));
+  const legendas = panels.map((p) => [...p.querySelectorAll('.ag-panel__bar, .ag-panel__text, .ag-panel__quero')]);
+  gsap.set(media, { xPercent: -50, yPercent: -50, x: 0, y: 0 });
+  const reduzido = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // celular: em coluna (as fotos empilhadas e a escolhida cresce para baixo)
+  const coluna = matchMedia('(max-width: 640px)');
+  let vertical = coluna.matches;
+  let active = Math.min(Math.max(defaultIndex, 0), count - 1);
+  let tl = null;
+  let primeira = true;
+  let mediaSize = 320;
+  let ratio = Math.min(Math.max(expandRatio, 0.2), 0.9);
+
+  function aplicar(animar) {
+    const r = ratio;
+    const grow = count > 1 ? (r * (count - 1)) / (1 - r) : 1;
+    tl?.kill();
+    const dur = animar && !reduzido ? duration : 0;
+    tl = gsap.timeline();
+    panels.forEach((panel, i) => {
+      const ativo = i === active;
+      panel.classList.toggle('ag-panel--active', ativo);
+      if (ativo) panel.setAttribute('aria-current', 'true'); else panel.removeAttribute('aria-current');
+      panel.querySelector('.ag-panel__quero').tabIndex = ativo ? 0 : -1;
+      const rot = ativo ? 0 : i < active ? tilt : -tilt;
+      tl.to(panel, { flexGrow: ativo ? grow : 1, ...(vertical ? { rotateX: -rot, rotateY: 0 } : { rotateY: rot, rotateX: 0 }), duration: dur, ease }, 0);
+      const drift = Math.max(-1.5, Math.min(1.5, active - i));
+      const shift = drift * parallax * mediaSize * 0.06;
+      tl.to(media[i], { x: vertical ? 0 : ativo ? 0 : shift, y: vertical ? (ativo ? 0 : shift) : 0, duration: dur, ease }, 0);
+      tl.to(cor[i], { opacity: !grayscale || ativo ? 1 : 0, duration: dur, ease }, 0);
+      tl.to(sombra[i], { opacity: ativo ? 0 : 0.35, duration: dur, ease }, 0);
+      if (!showLabels) return;
+      if (ativo) tl.to(legendas[i], { opacity: 1, x: 0, duration: dur, ease, stagger: reduzido ? 0 : stagger }, 0);
+      else tl.to(legendas[i], { opacity: 0, x: -14, duration: dur * 0.6, ease }, 0);
+    });
+  }
+
+  function medir() {
+    root.classList.toggle('acordeao--vertical', vertical);
+    const gap = parseFloat(getComputedStyle(root).rowGap || getComputedStyle(root).gap) || 10;
+    if (aspect > 0) {
+      // a foto aberta no formato exato da imagem: nada do corte fica de fora
+      if (vertical) {
+        // coluna: a aberta ocupa a largura toda; a altura da coluna acompanha (fechadas com 56 px)
+        const aberta = root.clientWidth / aspect;
+        root.style.height = `${Math.round(aberta + (count - 1) * (56 + gap))}px`;
+        mediaSize = aberta;
+        ratio = aberta / (aberta + (count - 1) * 56);
+      } else {
+        root.style.height = '';
+        const usable = Math.max(root.clientWidth - gap * (count - 1), 120);
+        const aberta = Math.min(root.clientHeight * aspect, usable * 0.9);
+        mediaSize = aberta;
+        ratio = Math.min(Math.max(aberta / usable, 0.2), 0.9);
+      }
+    } else {
+      const rect = root.getBoundingClientRect();
+      const usable = Math.max((vertical ? rect.height : rect.width) - gap * (count - 1), 120);
+      ratio = Math.min(Math.max(expandRatio, 0.2), 0.9);
+      mediaSize = Math.max(140, usable * ratio * 1.22);
+    }
+    root.style.setProperty('--ag-media-size', `${mediaSize}px`);
+    aplicar(!primeira);
+  }
+  const escolher = (i) => {
+    if (i === active) return;
+    active = i;
+    aplicar(true);
+  };
+
+  panels.forEach((panel, i) => {
+    panel.addEventListener('mouseenter', () => { if (trigger === 'hover' && matchMedia('(hover: hover)').matches) escolher(i); });
+    // guarda se a foto já estava aberta quando o dedo/mouse encostou (o foco abre antes do clique).
+    // Fechada: o clique só abre ela; aberta: o clique amplia (ver "Foto ampliada")
+    panel.addEventListener('pointerdown', () => { panel.dataset.pronta = i === active ? '1' : ''; });
+    panel.addEventListener('click', () => escolher(i));
+    panel.addEventListener('focus', () => escolher(i));
+    panel.addEventListener('keydown', (e) => {
+      const passo = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
+      if (passo) {
+        e.preventDefault();
+        panels[(i + passo + count) % count].focus();
+      } else if ((e.key === 'Enter' || e.key === ' ') && e.target === panel) {
+        e.preventDefault();
+        panel.dataset.pronta = '1';
+        panel.click(); // Enter na foto aberta amplia
+      }
+    });
+  });
+  coluna.addEventListener('change', (e) => { vertical = e.matches; medir(); });
+  new ResizeObserver(medir).observe(root);
+  medir();
+  primeira = false;
+}
+// as fotos dos trabalhos são em pé (600 × 800): a aberta fica 3:4 e mostra o corte inteiro
+document.querySelectorAll('[data-acordeao]').forEach((g) => acordeao(g, { defaultIndex: 2, trigger: 'hover', aspect: 3 / 4 }));
 
 /* ---------- Caixas que abrem (química e dúvidas) ----------
    O conteúdo aparece na hora (sem animar altura) e entra com fade e leve descida; fecha mais rápido. */
@@ -400,7 +826,20 @@ document.querySelectorAll('.quadro__glossario, .duvidas details').forEach((det) 
 });
 
 /* ---------- Dúvidas: título e perguntas entram em cascata curta (uma vez) ---------- */
-revelar(document.querySelector('.duvidas'), document.querySelectorAll('.duvidas > .titulo, .duvidas details'));
+// Dúvidas: o título (à esquerda) vem da esquerda e as perguntas (à direita) vêm da direita,
+// uma de cada vez, mais devagar que o resto para dar tempo de ver o movimento
+(function entradaDuvidas() {
+  const sec = document.querySelector('.duvidas');
+  if (!sec) return;
+  const lento = { duration: 1.3, ease: 'power3.out', threshold: 0.1, scrub: 0.4 };
+  const longe = matchMedia('(max-width: 959px)').matches ? 60 : 140;
+  animatedContent(sec, { ...lento, direction: 'horizontal', reverse: true, distance: longe, alvos: sec.querySelectorAll('.titulo') });
+  animatedContent(sec, { ...lento, direction: 'horizontal', distance: longe, stagger: 0.18, delay: 0.15, alvos: sec.querySelectorAll('.duvidas__lista details') });
+})();
+
+/* ---------- Horário e rodapé: a mesma entrada do resto do site ---------- */
+revelar(document.querySelector('.horario'), document.querySelectorAll('.horario__tabela > *, .horario__local > *'));
+revelar(document.querySelector('.rodape'), document.querySelectorAll('.rodape > *'));
 
 /* ---------- Foto ampliada ---------- */
 const dialogo = document.querySelector('[data-ampliada]');
@@ -410,7 +849,10 @@ if (dialogo && typeof dialogo.showModal === 'function') {
   img.height = 1600;
   img.decoding = 'async';
   dialogo.prepend(img);
-  document.querySelectorAll('[data-ampliar]').forEach((b) => b.addEventListener('click', () => {
+  document.querySelectorAll('[data-ampliar]').forEach((b) => b.addEventListener('click', (e) => {
+    // no acordeão: "Quero esse" agenda, e foto fechada só abre (o primeiro toque não amplia)
+    if (e.target.closest('[data-quero]')) return;
+    if (b.classList.contains('ag-panel') && !b.dataset.pronta) return;
     img.src = b.dataset.ampliar;
     img.alt = b.querySelector('img').alt;
     abrirModal(dialogo);
@@ -450,24 +892,47 @@ if (dialogo && typeof dialogo.showModal === 'function') {
   let diaSel = '';    // dia escolhido (AAAA-MM-DD); fica guardado mesmo trocando de mês
   let mesVisto = 0;   // mês mostrado no calendário (ano * 12 + mês)
 
-  // ----- passo 1: serviços (vêm da tabela de preços) -----
-  dialogo.querySelector('[data-agenda-servicos]').innerHTML = SERVICOS.map((s, i) => `
-    <label class="opcao"><input type="checkbox" name="servico" value="${i}">
-      <span class="opcao__caixa"><strong>${s.nome}</strong><small>${s.min} min · ${brl(s.preco)}</small></span></label>`).join('');
+  // ----- passo 1: serviços (vêm da tabela de preços, já com os valores do painel) -----
+  // só os serviços do lado escolhido (cabelo masculino ou feminino); os marcados que servem continuam marcados
+  function montarServicos() {
+    const antes = new Set(marcados().map((x) => x.nome));
+    dialogo.querySelector('[data-agenda-servicos]').innerHTML = SERVICOS.map((s, i) => (naArea(s.area) ? `
+      <label class="opcao"><input type="checkbox" name="servico" value="${i}"${antes.has(s.nome) ? ' checked' : ''}>
+        <span class="opcao__caixa"><strong>${s.nome}</strong><small>${s.min} min · ${brl(s.preco)}</small></span></label>` : '')).join('');
+  }
+  // quem atende o que foi escolhido: no feminino, quem atende cabelo feminino; no masculino, os barbeiros
+  const equipeDaVez = () => {
+    const pede = areaDosServicos(marcados()) || AREA.atual;
+    return CONFIG.profissionais.filter((n) => naArea(areaDaPessoa(n), pede));
+  };
 
-  // ----- passo 2: profissionais -----
-  const sigla = (n) => n.split(' ').map((p) => p[0]).slice(0, 2).join('');
-  dialogo.querySelector('[data-agenda-profissionais]').innerHTML = [
-    ...CONFIG.profissionais.map((n) => `
-      <label class="opcao"><input type="radio" name="profissional" value="${n}">
-        <span class="opcao__caixa opcao__caixa--pessoa"><span class="opcao__sigla" aria-hidden="true">${sigla(n)}</span><strong>${n}</strong></span></label>`),
-    `<label class="opcao"><input type="radio" name="profissional" value="${SEM_PREF}">
-        <span class="opcao__caixa opcao__caixa--pessoa"><span class="opcao__sigla" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-conta"/></svg></span><strong>${SEM_PREF}</strong><small>Quem estiver livre no horário</small></span></label>`,
-  ].join('');
-
+  // ----- passo 2: profissionais (com a foto enviada no painel; sem foto, as iniciais) -----
+  function montarProfissionais() {
+    const rosto = (n) => (FOTOS[n]
+      ? `<span class="opcao__sigla opcao__sigla--foto" aria-hidden="true"><img src="${escapar(FOTOS[n])}" alt="" width="56" height="56" loading="lazy" decoding="async"></span>`
+      : `<span class="opcao__sigla" aria-hidden="true">${escapar(iniciais(n))}</span>`);
+    const equipe = equipeDaVez();
+    const escolhido = valor('profissional');
+    dialogo.querySelector('[data-agenda-profissionais]').innerHTML = [
+      ...equipe.map((n) => `
+        <label class="opcao"><input type="radio" name="profissional" value="${escapar(n)}">
+          <span class="opcao__caixa opcao__caixa--pessoa">${rosto(n)}<strong>${escapar(n)}</strong></span></label>`),
+      ...(equipe.length > 1 ? [`<label class="opcao"><input type="radio" name="profissional" value="${SEM_PREF}">
+          <span class="opcao__caixa opcao__caixa--pessoa"><span class="opcao__sigla" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-conta"/></svg></span><strong>${SEM_PREF}</strong><small>Quem estiver livre no horário</small></span></label>`] : []),
+    ].join('');
+    // a escolha anterior continua se ainda servir; com uma pessoa só, ela já vem marcada
+    const radios = [...form.querySelectorAll('input[name="profissional"]')];
+    const manter = radios.find((r) => r.value === escolhido);
+    if (manter) manter.checked = true;
+    else if (equipe.length === 1 && radios[0]) radios[0].checked = true;
+  }
   const marcados = () => [...form.querySelectorAll('input[name="servico"]:checked')].map((c) => SERVICOS[Number(c.value)]);
   const duracaoTotal = () => marcados().reduce((t, s) => t + s.min, 0);
   const valor = (nome) => form.querySelector(`input[name="${nome}"]:checked`)?.value || '';
+  montarServicos();
+  montarProfissionais();
+  // trocou masculino/feminino com o agendamento aberto: refaz a lista de serviços
+  AREA.ouvintes.push(() => { if (dialogo.open) { montarServicos(); atualizar(); } });
 
   // ----- passo 3: dias abertos e horários livres -----
   const hojeISO = () => {
@@ -557,9 +1022,10 @@ if (dialogo && typeof dialogo.showModal === 'function') {
     if (!ocupados?.length) return true;
     const fim = t + duracaoTotal();
     const quem = valor('profissional');
-    const pessoas = quem && quem !== SEM_PREF ? [quem] : CONFIG.profissionais;
+    const pessoas = quem && quem !== SEM_PREF ? [quem] : equipeDaVez();
     // livre se pelo menos uma das pessoas possíveis não tem nada sobreposto
-    return pessoas.some((p) => !ocupados.some((o) => o.profissional === p && t < minutos(o.fim) && fim > minutos(o.inicio)));
+    // profissional null = pausa ou folga de todo mundo
+    return pessoas.some((p) => !ocupados.some((o) => (o.profissional === p || o.profissional === null) && t < minutos(o.fim) && fim > minutos(o.inicio)));
   }
 
   async function montarHoras(aviso = '') {
@@ -595,18 +1061,55 @@ if (dialogo && typeof dialogo.showModal === 'function') {
       ['Horário', valor('hora')],
       ['Duração', duracao(duracaoTotal())],
     ];
-    resumo.innerHTML = linhas.map(([k, v]) => `<div data-revela><dt>${k}</dt><dd>${v}</dd></div>`).join('')
+    resumo.innerHTML = linhas.map(([k, v]) => `<div data-revela><dt>${k}</dt><dd>${escapar(v)}</dd></div>`).join('')
       + `<div class="resumo__total" data-revela><dt>Total</dt><dd>${brl(lista.reduce((t, s) => t + s.preco, 0))}</dd></div>`;
   }
 
   const tel = form.elements.telefone;
   tel.addEventListener('input', () => { tel.value = mascaraTel(tel.value); });
 
+  // ----- passo 4: conta (logado só confirma; senão "Primeira vez" cria a conta e "Já tenho conta" entra) -----
+  let modoConta = 'cadastrar';
+  function pintarLogin() {
+    const c = sessao.conta;
+    dialogo.querySelector('[data-conta-logado]').hidden = !c;
+    dialogo.querySelector('[data-conta-form]').hidden = Boolean(c);
+    if (c) {
+      dialogo.querySelector('[data-conta-ini]').textContent = iniciais(c.nome);
+      dialogo.querySelector('[data-conta-nome-ag]').textContent = c.nome;
+      dialogo.querySelector('[data-conta-email-ag]').textContent = c.email;
+    }
+    dialogo.querySelectorAll('[data-conta-modo]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.contaModo === modoConta)));
+    dialogo.querySelectorAll('[data-so-modo]').forEach((el) => { el.hidden = el.dataset.soModo !== modoConta; });
+    form.elements.senha.autocomplete = modoConta === 'cadastrar' ? 'new-password' : 'current-password';
+  }
+  dialogo.querySelectorAll('[data-conta-modo]').forEach((b) => b.addEventListener('click', () => {
+    modoConta = b.dataset.contaModo;
+    erro.hidden = true;
+    pintarLogin();
+    atualizar();
+  }));
+  dialogo.querySelector('[data-conta-sair]').addEventListener('click', async () => {
+    try {
+      await fetch(`${CONFIG.api}/conta`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ acao: 'sair' }) });
+    } catch { /* segue */ }
+    sessao.conta = null;
+    modoConta = 'entrar';
+    pintarContaTopo();
+    pintarLogin();
+    atualizar();
+  });
+
   function valido(p) {
     if (p === 1) return marcados().length > 0;
     if (p === 2) return Boolean(valor('profissional'));
     if (p === 3) return Boolean(diaSel && valor('hora'));
-    if (p === 4) return form.elements.nome.value.trim().length >= 2 && tel.value.replace(/\D/g, '').length >= 10;
+    if (p === 4) {
+      if (sessao.conta) return true;
+      const f = form.elements;
+      if (modoConta === 'entrar') return emailOk(f.email.value) && f.senha.value.length > 0;
+      return f.nome.value.trim().length >= 2 && tel.value.replace(/\D/g, '').length >= 10 && emailOk(f.email.value) && f.senha.value.length >= 8;
+    }
     return true;
   }
 
@@ -653,10 +1156,11 @@ if (dialogo && typeof dialogo.showModal === 'function') {
     });
     dialogo.classList.toggle('agenda--fim', n === 5);
     btVoltar.hidden = n === 1 || n === 5;
-    btAvancar.textContent = n === 4 ? 'Confirmar agendamento' : n === 5 ? 'Fechar' : 'Continuar';
+    btAvancar.textContent = n === 4 ? rotuloConfirmar() : n === 5 ? 'Fechar' : 'Continuar';
     erro.hidden = true;
+    if (n === 2) montarProfissionais(); // depende dos serviços escolhidos no passo 1
     if (n === 3) montarDias();
-    if (n === 4) montarResumo();
+    if (n === 4) { montarResumo(); pintarLogin(); }
     const mostrar = () => {
       etapas.forEach((e) => { e.hidden = e !== nova; });
       corpo.scrollTop = 0;
@@ -697,14 +1201,25 @@ if (dialogo && typeof dialogo.showModal === 'function') {
     `WhatsApp: ${d.telefoneTxt}`,
   ].join('\n');
 
+  // no celular o botão fica curto para caber numa linha ao lado do total
+  function rotuloConfirmar() { return matchMedia('(max-width: 480px)').matches ? 'Confirmar' : 'Confirmar agendamento'; }
+  const mostrarErro = (txt) => {
+    enviando = false;
+    btAvancar.textContent = rotuloConfirmar();
+    erro.textContent = txt;
+    erro.hidden = false;
+    atualizar();
+  };
+
   async function confirmar() {
     const lista = marcados();
+    const f = form.elements;
     const dados = {
       servicos: lista.map((s) => s.nome),
       profissional: valor('profissional'),
       data: diaSel,
       hora: valor('hora'),
-      nome: form.elements.nome.value.trim(),
+      nome: f.nome.value.trim(),
       telefone: tel.value.replace(/\D/g, ''),
       telefoneTxt: tel.value,
       total: lista.reduce((t, s) => t + s.preco, 0),
@@ -714,21 +1229,54 @@ if (dialogo && typeof dialogo.showModal === 'function') {
     let salvo = false;
     if (CONFIG.api) {
       enviando = true;
-      btAvancar.textContent = 'Salvando...';
+      erro.hidden = true;
       atualizar();
-      try {
+      // sem login: entra ou cria a conta primeiro
+      if (!sessao.conta) {
+        btAvancar.textContent = modoConta === 'entrar' ? 'Entrando...' : 'Criando sua conta...';
+        try {
+          const corpo = modoConta === 'entrar'
+            ? { acao: 'entrar', email: f.email.value, senha: f.senha.value }
+            : { acao: 'cadastrar', nome: dados.nome, telefone: dados.telefone, email: f.email.value, senha: f.senha.value };
+          const r = await fetch(`${CONFIG.api}/conta`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify(corpo),
+          });
+          const resposta = await r.json().catch(() => ({}));
+          if (r.ok && resposta.conta) {
+            sessao.conta = resposta.conta;
+            pintarContaTopo();
+          } else if (r.status < 500 && r.status !== 404) {
+            if (r.status === 409) modoConta = 'entrar'; // e-mail já tem conta: troca para "Já tenho conta"
+            pintarLogin();
+            return mostrarErro(resposta.erro || 'Confira seus dados e tente de novo.');
+          }
+        } catch { /* sem conexão: segue pelo WhatsApp */ }
+      }
+      if (sessao.conta) {
+        dados.nome = sessao.conta.nome;
+        if (sessao.conta.telefone) { dados.telefone = sessao.conta.telefone; dados.telefoneTxt = mascaraTel(sessao.conta.telefone); }
+      }
+      btAvancar.textContent = 'Salvando...';
+      if (sessao.conta) try {
         const r = await fetch(`${CONFIG.api}/agendamentos`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
           body: JSON.stringify({
             servicos: dados.servicos, profissional: dados.profissional, data: dados.data, hora: dados.hora,
-            nome: dados.nome, telefone: dados.telefone, site: form.elements.site.value,
+            telefone: dados.telefone, site: form.elements.site.value,
           }),
         });
         const resposta = await r.json().catch(() => ({}));
         if (r.ok) {
           salvo = true;
           if (resposta.profissional) dados.profissional = resposta.profissional;
+        } else if (r.status === 401) {
+          // a sessão caiu no meio do caminho: pede para entrar de novo
+          sessao.conta = null;
+          modoConta = 'entrar';
+          pintarContaTopo();
+          pintarLogin();
+          return mostrarErro(resposta.erro || 'Entre na sua conta para confirmar.');
         } else if ([400, 409, 429].includes(r.status)) {
           // erro que a pessoa consegue resolver: mostra e deixa corrigir
           enviando = false;
@@ -738,7 +1286,7 @@ if (dialogo && typeof dialogo.showModal === 'function') {
             irPara(3);
             montarHoras(txt);
           } else {
-            btAvancar.textContent = 'Confirmar agendamento';
+            btAvancar.textContent = rotuloConfirmar();
             erro.textContent = txt;
             erro.hidden = false;
             atualizar();
@@ -754,7 +1302,7 @@ if (dialogo && typeof dialogo.showModal === 'function') {
     const texto = dialogo.querySelector('[data-feito-texto]');
     const wa = dialogo.querySelector('[data-feito-wa]');
     const waTexto = dialogo.querySelector('[data-feito-wa-texto]');
-    const primeiroNome = dados.nome.split(' ')[0];
+    const primeiroNome = dados.nome.split(' ')[0] || 'quase lá';
     wa.href = linkWhatsApp(mensagem(dados, salvo));
     wa.classList.toggle('botao--claro', !salvo);
     wa.classList.toggle('botao--contorno', salvo);
@@ -774,13 +1322,18 @@ if (dialogo && typeof dialogo.showModal === 'function') {
   // ----- abrir, navegar e fechar -----
   function abrir(nomes, pular) {
     form.reset();
+    // abriu por um serviço só de um lado (ex.: "Corte feminino"): o agendamento já vai para esse lado
+    const lado = areaDosServicos(SERVICOS.filter((x) => nomes.includes(x.nome)));
+    if (lado) mudarArea(lado, false);
+    montarServicos();
+    montarProfissionais();
+    modoConta = 'cadastrar';
     diaSel = '';
     enviando = false;
     form.querySelectorAll('input[name="servico"]').forEach((c) => {
       c.checked = nomes.includes(SERVICOS[Number(c.value)].nome);
     });
-    // só um profissional: já vem marcado
-    if (CONFIG.profissionais.length === 1) form.querySelector('input[name="profissional"]').checked = true;
+    montarProfissionais(); // com os serviços já marcados (e uma pessoa só, ela vem marcada)
     passo = 0;
     abrirModal(dialogo);
     irPara(pular && marcados().length ? 2 : 1, true);
@@ -809,6 +1362,12 @@ if (dialogo && typeof dialogo.showModal === 'function') {
     const lista = gatilho.dataset.servicos || gatilho.dataset.agendar || gatilho.dataset.servico || gatilho.dataset.agenda || '';
     abrir(lista.split('|').filter(Boolean), 'agendaPular' in gatilho.dataset);
   });
+
+  // index.html#agendar (vem da página "Minha conta") abre o agendamento direto
+  if (location.hash === '#agendar') {
+    history.replaceState(null, '', location.pathname + location.search);
+    Promise.all([configPronta, sessaoPronta]).then(() => abrir([], false));
+  }
 })();
 
 /* ---------- Fila: atendimento por ordem de chegada ----------

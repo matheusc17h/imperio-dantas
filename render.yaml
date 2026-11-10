@@ -1,0 +1,36 @@
+# Render: site + API do Império Dantas (server.mjs). O banco fica no Neon (DATABASE_URL).
+# No Render: New > Blueprint > escolher este repositório. Ele lê este arquivo e pede as variáveis
+# marcadas com "sync: false" (os segredos não ficam no git).
+services:
+  - type: web
+    name: imperio-dantas
+    runtime: node
+    plan: free            # o gratuito "dorme" depois de ~15 min sem visita; o primeiro acesso depois demora
+    region: virginia
+    buildCommand: npm ci --omit=dev
+    startCommand: npm start
+    healthCheckPath: /robots.txt
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      # Neon > Connection string (a que termina com ?sslmode=require)
+      - key: DATABASE_URL
+        sync: false
+      # texto aleatório para guardar o IP só como hash (o Render gera sozinho)
+      - key: SAL_IP
+        generateValue: true
+      # admin: e-mail dele + senha provisória do primeiro acesso (está no .env do computador)
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_NOME
+        value: Dantas
+      - key: ADMIN_SENHA_INICIAL
+        sync: false
+      # endereço do site no Render (ex.: https://imperio-dantas.onrender.com), usado no link de nova senha
+      - key: SITE_URL
+        sync: false
+      # e-mail de "Esqueci minha senha" (opcional: sem ele o site funciona, só não manda o e-mail)
+      - key: RESEND_API_KEY
+        sync: false
+      - key: EMAIL_REMETENTE
+        value: "Império Dantas <onboarding@resend.dev>"

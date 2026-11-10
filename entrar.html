@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Entrar · Império Dantas</title>
+  <meta name="description" content="Entre na sua conta do Império Dantas para ver e marcar seus horários.">
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#000000">
+  <link rel="icon" href="favicon.ico" sizes="48x48">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Manrope:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="css/painel.css">
+</head>
+<body>
+  <main class="acesso">
+    <div class="acesso__caixa">
+      <a class="acesso__marca" href="index.html" aria-label="Império Dantas, voltar ao site">
+        <img src="img/site/coroa.png" alt="" width="370" height="350">
+        <span><small>Império</small>Dantas</span>
+      </a>
+
+      <!-- entrar -->
+      <section class="acesso__painel" data-tela="entrar" aria-labelledby="t-entrar" hidden>
+        <h1 id="t-entrar" tabindex="-1">Entrar</h1>
+        <p>Com o e-mail e a senha que você usou para marcar horário.</p>
+        <form class="acesso__form" data-form="entrar" novalidate>
+          <label class="campo"><span>E-mail</span><input name="email" type="email" autocomplete="email" inputmode="email" maxlength="160" required></label>
+          <label class="campo"><span>Senha</span><span class="senha"><input name="senha" type="password" autocomplete="current-password" maxlength="200" required><button type="button" data-ver-senha aria-label="Mostrar senha" aria-pressed="false"><svg aria-hidden="true"><use href="#i-olho"/></svg></button></span></label>
+          <p class="aviso aviso--erro" data-erro role="alert" hidden></p>
+          <button type="submit" class="botao botao--claro">Entrar</button>
+        </form>
+        <div class="acesso__links">
+          <button type="button" data-ir="esqueci">Esqueci minha senha</button>
+          <button type="button" data-ir="cadastrar">Criar conta</button>
+        </div>
+      </section>
+
+      <!-- criar conta -->
+      <section class="acesso__painel" data-tela="cadastrar" aria-labelledby="t-cadastrar" hidden>
+        <h1 id="t-cadastrar" tabindex="-1">Criar conta</h1>
+        <p>Com a conta você confirma seus horários e acompanha o que já marcou.</p>
+        <form class="acesso__form" data-form="cadastrar" novalidate>
+          <label class="campo"><span>Nome</span><input name="nome" autocomplete="name" maxlength="80" required></label>
+          <label class="campo"><span>WhatsApp</span><input name="telefone" type="tel" inputmode="tel" autocomplete="tel" placeholder="(11) 90000-0000" maxlength="16" required></label>
+          <label class="campo"><span>E-mail</span><input name="email" type="email" autocomplete="email" inputmode="email" maxlength="160" required></label>
+          <label class="campo"><span>Senha</span><span class="senha"><input name="senha" type="password" autocomplete="new-password" minlength="8" maxlength="200" required><button type="button" data-ver-senha aria-label="Mostrar senha" aria-pressed="false"><svg aria-hidden="true"><use href="#i-olho"/></svg></button></span><small>Pelo menos 8 caracteres.</small></label>
+          <p class="aviso aviso--erro" data-erro role="alert" hidden></p>
+          <button type="submit" class="botao botao--claro">Criar conta</button>
+        </form>
+        <div class="acesso__links"><button type="button" data-ir="entrar">Já tenho conta</button></div>
+      </section>
+
+      <!-- esqueci -->
+      <section class="acesso__painel" data-tela="esqueci" aria-labelledby="t-esqueci" hidden>
+        <h1 id="t-esqueci" tabindex="-1">Nova senha</h1>
+        <p>Mandamos um link para o seu e-mail. Ele vale por 1 hora.</p>
+        <form class="acesso__form" data-form="esqueci" novalidate>
+          <label class="campo"><span>E-mail</span><input name="email" type="email" autocomplete="email" inputmode="email" maxlength="160" required></label>
+          <p class="aviso aviso--erro" data-erro role="alert" hidden></p>
+          <p class="aviso aviso--ok" data-ok role="status" hidden></p>
+          <button type="submit" class="botao botao--claro">Mandar o link</button>
+        </form>
+        <div class="acesso__links"><button type="button" data-ir="entrar">Voltar para entrar</button></div>
+      </section>
+
+      <!-- redefinir (vem do link do e-mail) -->
+      <section class="acesso__painel" data-tela="redefinir" aria-labelledby="t-redefinir" hidden>
+        <h1 id="t-redefinir" tabindex="-1">Crie sua senha</h1>
+        <p>Escolha uma senha com pelo menos 8 caracteres.</p>
+        <form class="acesso__form" data-form="redefinir" novalidate>
+          <label class="campo"><span>Nova senha</span><span class="senha"><input name="senha" type="password" autocomplete="new-password" minlength="8" maxlength="200" required><button type="button" data-ver-senha aria-label="Mostrar senha" aria-pressed="false"><svg aria-hidden="true"><use href="#i-olho"/></svg></button></span></label>
+          <p class="aviso aviso--erro" data-erro role="alert" hidden></p>
+          <button type="submit" class="botao botao--claro">Salvar e entrar</button>
+        </form>
+      </section>
+
+      <!-- primeiro acesso: entrou com a senha provisória e cria a própria -->
+      <section class="acesso__painel" data-tela="trocar" aria-labelledby="t-trocar" hidden>
+        <h1 id="t-trocar" tabindex="-1">Crie sua senha</h1>
+        <p>Você entrou com uma senha provisória. Escolha agora a sua, com pelo menos 8 caracteres. Só você vai saber.</p>
+        <form class="acesso__form" data-form="trocar" novalidate>
+          <label class="campo"><span>Sua senha</span><span class="senha"><input name="senha" type="password" autocomplete="new-password" minlength="8" maxlength="200" required><button type="button" data-ver-senha aria-label="Mostrar senha" aria-pressed="false"><svg aria-hidden="true"><use href="#i-olho"/></svg></button></span></label>
+          <label class="campo"><span>Repita a senha</span><span class="senha"><input name="repetir" type="password" autocomplete="new-password" minlength="8" maxlength="200" required><button type="button" data-ver-senha aria-label="Mostrar senha" aria-pressed="false"><svg aria-hidden="true"><use href="#i-olho"/></svg></button></span></label>
+          <p class="aviso aviso--erro" data-erro role="alert" hidden></p>
+          <button type="submit" class="botao botao--claro">Salvar minha senha</button>
+        </form>
+      </section>
+
+      <!-- 2FA: depois da senha, o código de 6 números do app (equipe) -->
+      <section class="acesso__painel" data-tela="2fa" aria-labelledby="t-2fa" hidden>
+        <h1 id="t-2fa" tabindex="-1">Código de verificação</h1>
+        <p>Abra o app autenticador no seu celular e digite o código de 6 números do <strong>Império Dantas</strong>.</p>
+        <form class="acesso__form" data-form="2fa" novalidate>
+          <label class="campo"><span>Código</span><input name="codigo" inputmode="numeric" autocomplete="one-time-code" maxlength="9" placeholder="000000" class="codigo-2fa" required></label>
+          <p class="aviso aviso--erro" data-erro role="alert" hidden></p>
+          <button type="submit" class="botao botao--claro">Entrar</button>
+        </form>
+        <details class="acesso__ajuda">
+          <summary>Perdi o celular</summary>
+          <p>Digite no campo acima um dos códigos de recuperação que você guardou (formato ABCD-1234). Cada um funciona uma vez. Sem eles, peça para a administração zerar a sua verificação.</p>
+        </details>
+      </section>
+
+      <!-- 2FA: ativação (primeira vez da equipe) -->
+      <section class="acesso__painel" data-tela="ativar2fa" aria-labelledby="t-ativar2fa" hidden>
+        <h1 id="t-ativar2fa" tabindex="-1">Proteja o painel</h1>
+        <p>Além da senha, o painel vai pedir um código do seu celular. Leva 1 minuto:</p>
+        <ol class="passos-2fa">
+          <li>Instale <strong>Google Authenticator</strong> ou <strong>Microsoft Authenticator</strong> (grátis).</li>
+          <li>No app, toque em <strong>+</strong> e escaneie o código abaixo.</li>
+          <li>Digite o código de 6 números que aparecer.</li>
+        </ol>
+        <div class="qr-2fa" data-qr aria-label="QR code para o app autenticador" role="img"></div>
+        <details class="acesso__ajuda">
+          <summary>Não consigo escanear</summary>
+          <p>No app, escolha "inserir chave" e digite: <code data-segredo></code></p>
+        </details>
+        <form class="acesso__form" data-form="ativar2fa" novalidate>
+          <label class="campo"><span>Código do app</span><input name="codigo" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000" class="codigo-2fa" required></label>
+          <p class="aviso aviso--erro" data-erro role="alert" hidden></p>
+          <button type="submit" class="botao botao--claro">Ativar</button>
+        </form>
+      </section>
+
+      <!-- 2FA: códigos de recuperação (aparecem uma vez só) -->
+      <section class="acesso__painel" data-tela="codigos" aria-labelledby="t-codigos" hidden>
+        <h1 id="t-codigos" tabindex="-1">Guarde estes códigos</h1>
+        <p>Se perder o celular, cada código abaixo deixa você entrar uma vez. Eles <strong>não vão aparecer de novo</strong>: tire um print ou anote num lugar seguro.</p>
+        <ul class="codigos-2fa" data-codigos></ul>
+        <button type="button" class="botao botao--contorno" data-copiar-codigos>Copiar os códigos</button>
+        <label class="troca-simples"><input type="checkbox" data-guardei> Guardei os códigos</label>
+        <button type="button" class="botao botao--claro" data-continuar disabled>Continuar para o painel</button>
+      </section>
+
+      <!-- já logado (cliente) -->
+      <section class="acesso__painel" data-tela="conta" aria-labelledby="t-conta" hidden>
+        <h1 id="t-conta" tabindex="-1" data-ola></h1>
+        <p data-conta-email></p>
+        <ul class="proximos" data-proximos></ul>
+        <a class="botao botao--claro" href="index.html#agendar">Marcar horário</a>
+        <a class="botao botao--contorno" href="painel.html" data-ir-painel hidden>Abrir o painel</a>
+        <div class="acesso__links"><button type="button" data-sair>Sair da conta</button></div>
+      </section>
+
+      <a class="acesso__voltar" href="index.html">Voltar para o site</a>
+    </div>
+  </main>
+
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-olho" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/></g></symbol>
+  </svg>
+  <!-- desenha o QR code da ativação (qrcode-generator 1.4.4, MIT); integrity: o navegador recusa se o arquivo for alterado -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js" integrity="sha384-mZT2gIty7ZDdOGkxfP6joZcYdMW1Jvj9dRlfpTmaJAKKXTqzygtB22k7FLe+KZC1" crossorigin="anonymous" defer></script>
+  <script src="js/entrar.js" defer></script>
+</body>
+</html>
