@@ -244,7 +244,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .quadro__grupo button {
   display: grid; width: 100%; text-align: left; grid-template-columns: 1fr auto; grid-template-areas: "nome preco" "tempo preco";
   align-items: center; column-gap: var(--e-2);
-  padding: 12px 0; min-height: 56px; text-decoration: none;
+  padding: 9px 0; min-height: 50px; text-decoration: none;
   border-bottom: 1px dashed var(--linha-escura);
 }
 @media (hover: hover) { .quadro__nome { transition: transform .2s var(--sai); } } /* no celular o GSAP move o nome com a rolagem */
@@ -360,6 +360,15 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 @media (max-width: 959px) { .trabalhos .area-troca { display: grid; width: fit-content; margin-inline: auto; } }
 .area-troca--agenda { display: grid; width: 100%; margin: 0; }
 @media (max-width: 400px) { .area-troca button { padding: 0 var(--e-2); font-size: var(--t-xs); } }
+
+/* tabela de preços: a área dos serviços tem a altura do lado maior (JS: igualarTabela); o espaço que
+   sobra no lado menor fica todo no fim, nunca no meio da lista */
+[data-area-conteudo] { align-content: start; }
+
+/* as duas galerias (masculino/feminino) ocupam o mesmo lugar; a de fora fica invisível mas medida */
+.galerias { display: grid; }
+.galerias > .acordeao { grid-area: 1 / 1; }
+.acordeao--inativa { visibility: hidden; pointer-events: none; }
 
 /* cartão no lugar de uma foto que ainda não chegou (mesmo tamanho: 600 × 800, em pé) */
 .ag-panel__vaga { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 10px; background: #2A2B30; }
@@ -738,8 +747,8 @@ dialog.fechando::backdrop { animation: fundo-sai .2s var(--entra) forwards; }
   .quadro__placa { padding-block: var(--e-5); }
   .quadro__topo { margin-bottom: var(--e-4); gap: var(--e-1); }
   .quadro__topo img { width: 48px; }
-  .quadro__grupo button { min-height: 48px; padding-block: 8px; }
-  .quadro__glossario { margin-top: var(--e-4); }
+  .quadro__grupo button { min-height: 46px; padding-block: 6px; }
+  .quadro__glossario { margin-top: var(--e-3); }
   .trabalhos { display: grid; align-content: center; padding-block: var(--e-6); }
   .trabalhos__topo { margin-bottom: var(--e-4); }
   .horario { align-content: center; align-items: center; padding-block: var(--e-6); }

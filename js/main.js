@@ -296,18 +296,46 @@ function mudarArea(nova, animar = true) {
   };
   // tabela de preços: grupos, sub-blocos e linhas com data-area
   const grupos = document.querySelector('[data-area-conteudo]');
-  trocar(grupos, () => grupos.querySelectorAll('[data-area]').forEach((el) => { el.hidden = !naArea(el.dataset.area); }));
+  trocar(grupos, () => mostrarLado(nova));
   // galeria de trabalhos: uma por área
   const galerias = [...document.querySelectorAll('[data-acordeao][data-area]')];
-  if (galerias.length) trocar(galerias, () => galerias.forEach((g) => { g.hidden = g.dataset.area !== nova; }));
+  // as duas galerias ficam montadas no mesmo lugar (CSS .galerias): só troca qual aparece, sem remedir nada
+  if (galerias.length) {
+    trocar(galerias, () => galerias.forEach((g) => {
+      const fora = g.dataset.area !== nova;
+      g.classList.toggle('acordeao--inativa', fora);
+      g.inert = fora;
+      g.setAttribute('aria-hidden', String(fora));
+    }));
+  }
   AREA.ouvintes.forEach((fn) => fn(nova));
 }
 document.addEventListener('click', (e) => {
   const b = e.target.closest('[data-area-escolher]');
   if (b) mudarArea(b.dataset.areaEscolher);
 });
-// começa no masculino (a tabela já vem montada; só esconde o lado feminino)
-document.querySelectorAll('[data-area-conteudo] [data-area]').forEach((el) => { el.hidden = !naArea(el.dataset.area); });
+// tabela de preços: mostra só as linhas do lado escolhido
+function mostrarLado(area) {
+  document.querySelectorAll('[data-area-conteudo] [data-area]').forEach((el) => { el.hidden = !naArea(el.dataset.area, area); });
+}
+// os dois lados da tabela com a mesma altura: mede cada um e fixa a altura mínima no maior,
+// para a placa não crescer nem encolher na troca (refeito quando a tela muda de tamanho)
+function igualarTabela() {
+  const caixa = document.querySelector('[data-area-conteudo]');
+  if (!caixa) return;
+  caixa.style.minHeight = '';
+  let maior = 0;
+  for (const lado of ['masculino', 'feminino']) {
+    mostrarLado(lado);
+    maior = Math.max(maior, caixa.offsetHeight + 1); // +1: meio pixel de arredondamento
+  }
+  mostrarLado(AREA.atual);
+  caixa.style.minHeight = `${maior}px`;
+}
+igualarTabela();
+let esperaTabela = 0;
+addEventListener('resize', () => { clearTimeout(esperaTabela); esperaTabela = setTimeout(() => { igualarTabela(); window.ScrollTrigger?.refresh(); }, 200); });
+document.fonts?.ready.then(igualarTabela);
 
 // números do topo ("R$ 15 a R$ 150", "17 serviços") saem da própria tabela
 function pintarResumoPrecos() {
@@ -350,6 +378,7 @@ function aplicarConfig(c) {
     bt.setAttribute('aria-label', `Agendar ${s.nome}, ${brl(s.preco)}, ${s.min} minutos`);
   });
   pintarResumoPrecos();
+  igualarTabela(); // preço novo pode mudar a altura de alguma linha
   if (c.horarios) {
     for (let d = 0; d < 7; d++) {
       HORARIOS[d] = c.horarios[d] || null;

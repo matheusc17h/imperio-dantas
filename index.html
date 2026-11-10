@@ -309,6 +309,9 @@
         <button type="button" data-area-escolher="masculino" aria-pressed="true">Cabelo masculino</button>
         <button type="button" data-area-escolher="feminino" aria-pressed="false">Cabelo feminino</button>
       </div>
+      <!-- as duas galerias ficam montadas no mesmo lugar: trocar só mostra uma e esconde a outra,
+           então a seção nunca muda de altura -->
+      <div class="galerias">
       <div class="acordeao" data-acordeao data-area="masculino" role="list" aria-label="Fotos de trabalhos de cabelo masculino">
         <div class="ag-panel" role="listitem" tabindex="0" data-ampliar="img/site/luzes-platinadas-1200.webp" aria-label="Luzes platinadas. Toque para ver de perto">
           <span class="ag-panel__frame"><span class="ag-panel__media"><img class="ag-panel__pb" decoding="async" src="img/site/luzes-platinadas-600.webp" width="600" height="800" loading="lazy" alt="" draggable="false"><img class="ag-panel__cor" decoding="async" src="img/site/luzes-platinadas-600.webp" width="600" height="800" loading="lazy" alt="Luzes platinadas em cabelo penteado para trás" draggable="false"></span><span class="ag-panel__overlay" aria-hidden="true"></span><span class="ag-panel__sombra" aria-hidden="true"></span></span>
@@ -345,7 +348,7 @@
            Para trocar: no lugar dos dois <span class="ag-panel__vaga">, colocar as duas <img> (ag-panel__pb e
            ag-panel__cor) igual às fotos do cabelo masculino, mais data-ampliar="...-1200.webp" no .ag-panel,
            e trocar o nome (ag-panel__text, aria-label e data-quero). -->
-      <div class="acordeao" data-acordeao data-area="feminino" role="list" aria-label="Fotos de trabalhos de cabelo feminino" hidden>
+      <div class="acordeao acordeao--inativa" data-acordeao data-area="feminino" role="list" aria-label="Fotos de trabalhos de cabelo feminino" inert aria-hidden="true">
         <div class="ag-panel" role="listitem" tabindex="0" aria-label="Corte em camadas">
           <span class="ag-panel__frame"><span class="ag-panel__media"><span class="ag-panel__pb ag-panel__vaga" aria-hidden="true"></span><span class="ag-panel__cor ag-panel__vaga" aria-hidden="true"><img src="img/site/coroa.png" alt="" width="370" height="350" loading="lazy"><small>Foto 600 × 800</small></span></span><span class="ag-panel__overlay" aria-hidden="true"></span><span class="ag-panel__sombra" aria-hidden="true"></span></span>
           <span class="ag-panel__label"><span class="ag-panel__bar" aria-hidden="true"></span><span class="ag-panel__text">Corte em camadas</span></span>
@@ -376,6 +379,7 @@
           <span class="ag-panel__label"><span class="ag-panel__bar" aria-hidden="true"></span><span class="ag-panel__text">Penteado</span></span>
           <button type="button" class="ag-panel__quero" data-quero="Penteado" data-servicos="Penteados" tabindex="-1">Quero esse</button>
         </div>
+      </div>
       </div>
       <a class="trabalhos__insta" href="https://www.instagram.com/imperioo_dantas/" target="_blank" rel="noopener"><svg aria-hidden="true" viewBox="0 0 24 24"><use href="#i-instagram"/></svg>Veja mais trabalhos no Instagram <small>@imperioo_dantas</small></a>
     </section>
