@@ -510,7 +510,10 @@ function atualizarStatus() {
   const prox = proximaAbertura();
   if (prox) alvo.textContent = `Fechado agora, abre ${prox.quando} às ${prox.hora}`;
 }
+// o selo só aparece depois de ter o status do dia (CSS .js .status:not(.status--pronto))
+function mostrarStatus() { document.querySelector('.status')?.classList.add('status--pronto'); }
 atualizarStatus();
+mostrarStatus();
 setInterval(atualizarStatus, 60 * 1000);
 document.querySelector(`[data-dia-semana="${agoraSP().dia}"]`)?.classList.add('hoje');
 

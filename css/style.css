@@ -156,6 +156,15 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .status__ponto { width: 7px; height: 7px; flex: none; border-radius: 50%; background: var(--texto-escuro-2); }
 .aberto .status__ponto { background: var(--wa-verde); box-shadow: 0 0 0 4px rgba(37,211,102,.16); }
 .aberto [data-status] { color: var(--branco); }
+/* com JS, o selo espera o status do dia (main.js) em vez de mostrar o horário da semana e depois trocar:
+   fica invisível e em uma linha só, então nada pula. Se o main.js não carregar, aparece sozinho em 3s */
+.js .status:not(.status--pronto) {
+  visibility: hidden; max-width: 100%; white-space: nowrap; overflow: hidden;
+  animation: status-garantia 0s 3s forwards;
+}
+@keyframes status-garantia { to { visibility: visible; white-space: normal; } }
+.status--pronto { animation: status-entra .3s var(--sai); }
+@keyframes status-entra { from { opacity: 0; } }
 
 .nav {
   position: sticky; top: 0; z-index: 50;
