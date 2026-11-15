@@ -668,7 +668,9 @@ if (botaoMenu && menu) {
   if (!placa || !comMovimento() || !window.ScrollTrigger) return;
   gsap.registerPlugin(ScrollTrigger);
   gsap.matchMedia().add('(min-width: 960px) and (min-height: 620px)', () => {
-    const conteudo = placa.querySelectorAll('.quadro__topo, .quadro__grupo, .quadro__glossario');
+    // só a camada .quadro__conteudo: as entradas e a troca masculino/feminino animam o que está dentro
+    // dela, e nunca ela mesma (senão uma desfazia a outra e o texto voltava por cima de "Trabalhos")
+    const conteudo = placa.querySelector('.quadro__conteudo');
     // quanto a placa precisa crescer para passar das bordas da tela (com folga, a moldura sai de vista)
     const cobrir = () => Math.max(innerWidth / placa.offsetWidth, innerHeight / placa.offsetHeight) * 1.25;
     // a seção seguinte começa por baixo da placa já crescida: assim que o zoom termina,
@@ -696,7 +698,7 @@ if (botaoMenu && menu) {
         pin: true, scrub: true, invalidateOnRefresh: true,
       },
     })
-      .fromTo(conteudo, { opacity: 1, y: 0 }, { opacity: 0, y: -24, duration: 0.4, stagger: 0.04, immediateRender: false })
+      .fromTo(conteudo, { opacity: 1, y: 0 }, { opacity: 0, y: -24, duration: 0.4, immediateRender: false })
       .fromTo(placa, { scale: 1 }, { scale: cobrir, duration: 0.6, ease: 'power2.in', immediateRender: false }, 0.32)
       .to({}, { duration: 0.75 }); // a parte parada no preto
     return () => {

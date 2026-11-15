@@ -201,6 +201,9 @@
          api/_lib.js, que o servidor usa para conferir. ===================== -->
     <section class="quadro" id="precos">
       <div class="quadro__placa">
+        <!-- camada só do efeito de zoom (o texto some quando a placa cresce). Nenhuma outra animação
+             mexe nela, então a troca masculino/feminino não consegue desfazer o zoom -->
+        <div class="quadro__conteudo">
         <header class="quadro__topo">
           <img loading="lazy" decoding="async" src="img/site/coroa.png" alt="" width="370" height="350">
           <h2>Tabela de preços</h2>
@@ -292,6 +295,7 @@
             <div><dt>Morena iluminada</dt><dd>Mechas que clareiam aos poucos, das raízes escuras às pontas claras.</dd></div>
           </dl>
         </details>
+        </div>
       </div>
     </section>
     </div>
