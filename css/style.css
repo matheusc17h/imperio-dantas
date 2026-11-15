@@ -468,25 +468,6 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .barra-celular { transition: transform .3s var(--sai); }
 .barra-celular.barra--fora, .modal-aberto .barra-celular { transform: translateY(110%); transition: transform .2s var(--entra); }
 
-/* =====================================================================
-   QUEM ATENDE E AVALIAÇÕES (ocultas até ter conteúdo real)
-   ===================================================================== */
-.equipe { max-width: var(--largura); margin: 0 auto; padding: var(--e-12) var(--lateral); }
-.equipe__lista { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--e-4); margin-top: var(--e-6); }
-.equipe__pessoa { display: grid; gap: var(--e-1); }
-.equipe__pessoa img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; margin-bottom: var(--e-1); }
-.equipe__pessoa h3 { font: 500 var(--t-lg)/1.1 var(--display); }
-.equipe__pessoa p { font-size: var(--t-sm); color: var(--texto-escuro-2); }
-.avaliacoes { display: grid; grid-template-columns: minmax(240px, 380px) minmax(0, 1fr); gap: var(--e-8); padding: var(--e-12) var(--borda); background: var(--parede); color: var(--preto); }
-.avaliacoes__nota p { margin-top: var(--e-1); color: var(--texto-claro-2); }
-.avaliacoes__lista { display: grid; gap: var(--e-3); }
-.avaliacoes blockquote { margin: 0; padding-left: var(--e-3); border-left: 1px solid var(--preto); }
-.avaliacoes blockquote p { font: 500 var(--t-md)/1.4 var(--display); }
-.avaliacoes blockquote footer { margin-top: var(--e-1); font-size: var(--t-sm); color: var(--texto-claro-2); }
-@media (max-width: 959px) {
-  .avaliacoes { grid-template-columns: minmax(0, 1fr); gap: var(--e-4); text-align: center; }
-  .avaliacoes blockquote { padding-left: 0; border-left: 0; }
-}
 
 /* =====================================================================
    AGENDAMENTO: tela em 4 passos (abre por cima da página)
