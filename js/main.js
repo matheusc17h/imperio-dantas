@@ -319,11 +319,15 @@ function mostrarLado(area) {
   document.querySelectorAll('[data-area-conteudo] [data-area]').forEach((el) => { el.hidden = !naArea(el.dataset.area, area); });
 }
 // os dois lados da tabela com a mesma altura: mede cada um e fixa a altura mínima no maior,
-// para a placa não crescer nem encolher na troca (refeito quando a tela muda de tamanho)
+// para a placa não crescer nem encolher na troca (refeito quando a tela muda de tamanho).
+// Só onde a placa fica presa e dá zoom (mesma condição de saidaDaTabela): no celular e no tablet
+// em pé ela só rola, e a altura fixa deixava um vão grande no fim do lado masculino
+const TABELA_PRESA = matchMedia('(min-width: 960px) and (min-height: 620px)');
 function igualarTabela() {
   const caixa = document.querySelector('[data-area-conteudo]');
   if (!caixa) return;
   caixa.style.minHeight = '';
+  if (!TABELA_PRESA.matches) { mostrarLado(AREA.atual); return; } // é aqui que a página esconde o outro lado ao abrir
   let maior = 0;
   for (const lado of ['masculino', 'feminino']) {
     mostrarLado(lado);
